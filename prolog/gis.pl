@@ -9,10 +9,12 @@
     distance_greatcircle/4, % +Point1, +Point2, -Distance, +Unit
     distance_pythagorean/3, % +Point1, +Point2, -Distance
     gis_property/1,         % ?Property
+    gis_touches/2,          % +Wkt1, +Wkt2
     gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
     iri_shape/2,            % ?Iri, ?Shape
     is_shape/1,             % +Shape
-    shape_dimensionality/2  % +Shape, -Dimensionality
+    shape_dimensionality/2, % +Shape, -Dimensionality
+    shape_type/2            % +Wkt, ?Type
   ]
 ).
 
@@ -138,6 +140,13 @@ gis_property__(geos_version(_)).
 
 
 
+%! gis_touches(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_touches(Wkt1, Wkt2) :-
+  gis_touches_(Wkt1, Wkt2).
+
+
+
 %! gis_union(+Wkt1:atom, +Wkt2:atom, +Wkt3:atom) is det.
 
 gis_union(Wkt1, Wkt2, Wkt3) :-
@@ -186,3 +195,11 @@ shape_dimensionality(Shape, Dim) :-
   functor(Shape, 'Point', Dim).
 shape_dimensionality(Shape, _) :-
   type_error(shape, Shape).
+
+
+
+%! shape_type(+Wkt:atom, +Type:atom) is semidet.
+%! shape_type(+Wkt:atom, -Type:atom) is det.
+
+shape_type(Wkt, Type) :-
+  shape_type_(Wkt, Type).
