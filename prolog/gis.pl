@@ -3,6 +3,7 @@
   [
     bearing/3,              % +Point1, +Point2, -Bearing
     box_polygon/2,          % +Box, -Polygon
+    convert_distance/3,     % +Distance1, +Kind, -Distance2
     degree_radian/2,        % ?Degree, ?Radian
     distance_greatcircle/3, % +Point1, +Point2, -Distance
     distance_greatcircle/4, % +Point1, +Point2, -Distance, +Unit
@@ -60,6 +61,14 @@ box_polygon(
 
 
 
+%! convert_distance(+Distance1:float, +Kind:oneof([metre]),
+%!                  -Distance2:float) is det.
+
+convert_distance(Distance1, metre, Distance2) :-
+  Distance2 is Distance1 * 1 000.
+
+
+
 %! degree_radian(+Degree:float, -Radian:float) is det.
 %! degree_radian(-Degree:float, +Radian:float) is det.
 
@@ -75,7 +84,8 @@ degree_radian(Degree, Radian) :-
 
 
 %! distance_greatcircle(+Point1:compound, +Point2:compound, -Distance:float) is det.
-%! distance_greatcircle(+Point1:compound, +Point2:compound, -Distance:float, +Unit:oneof([km,nm])) is det.
+%! distance_greatcircle(+Point1:compound, +Point2:compound, -Distance:float,
+%!                      +Unit:oneof([km,nm])) is det.
 %
 % Calculates great circle distance between Point1 and Point2 in the
 % specified Unit, which can take as a value km (kilometers) or nm
