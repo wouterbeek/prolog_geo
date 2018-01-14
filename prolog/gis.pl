@@ -165,21 +165,21 @@ is_shape(Shape) :-
 
 %! shape_dimensionality(+Shape:compound, -Dimensionality:nonneg) is det.
 
-shape_dimensionality(box(Point,_), Dim) :-
+shape_dimensionality(box(Point,_), Dim) :- !,
   shape_dimensionality(Point, Dim).
-shape_dimensionality('CircularString'(Point,_,_), Dim) :-
+shape_dimensionality('CircularString'(Point,_,_), Dim) :- !,
   shape_dimensionality(Point, Dim).
-shape_dimensionality('GeometryCollection'([Geom|_]), Dim) :-
+shape_dimensionality('GeometryCollection'([Geom|_]), Dim) :- !,
   shape_dimensionality(Geom, Dim).
-shape_dimensionality('LineString'([Point|_]), Dim) :-
+shape_dimensionality('LineString'([Point|_]), Dim) :- !,
   shape_dimensionality(Point, Dim).
-shape_dimensionality('MultiLineString'([LineString|_]), Dim) :-
+shape_dimensionality('MultiLineString'([LineString|_]), Dim) :- !,
   shape_dimensionality(LineString, Dim).
-shape_dimensionality('MultiPoint'([Point|_]), Dim) :-
+shape_dimensionality('MultiPoint'([Point|_]), Dim) :- !,
   shape_dimensionality(Point, Dim).
-shape_dimensionality('MultiPolygon'([Polygon|_]), Dim) :-
+shape_dimensionality('MultiPolygon'([Polygon|_]), Dim) :- !,
   shape_dimensionality(Polygon, Dim).
-shape_dimensionality('Polygon'([[Point|_]|_]), Dim) :-
+shape_dimensionality('Polygon'([[Point|_]|_]), Dim) :- !,
   shape_dimensionality(Point, Dim).
 shape_dimensionality(Shape, Dim) :-
   ground(Shape), !,
