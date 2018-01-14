@@ -8,6 +8,7 @@
     distance_greatcircle/3, % +Point1, +Point2, -Distance
     distance_greatcircle/4, % +Point1, +Point2, -Distance, +Unit
     distance_pythagorean/3, % +Point1, +Point2, -Distance
+    gis_distance/3,         % +Wkt1, +Wkt2, -Distance
     gis_property/1,         % ?Property
     gis_touches/2,          % +Wkt1, +Wkt2
     gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
@@ -127,6 +128,13 @@ distance_greatcircle(point(Lat1deg,Long1deg), point(Lat2deg,Long2deg), Distance,
 
 distance_pythagorean(point(X1,Y1), point(X2,Y2), Distance) :-
   Distance is sqrt(((X2 - X1) ^ 2) + ((Y2 - Y1) ^ 2)).
+
+
+
+%! gis_distance(+Wkt1:compound, +Wkt2:compound, -Distance:float) is det.
+
+gis_distance(Wkt1, Wkt2, Distance) :-
+  gis_distance_(Wkt1, Wkt2, Distance).
 
 
 
