@@ -11,3 +11,5 @@ $ sudo dnf install geos geos-devel
 #+BEGIN_SRC sh
 $ sudo apt install libgeos
 #+END_SRC
+* Limitations
+** Cannot recognize CRS URIs at the beginning of WKT strings

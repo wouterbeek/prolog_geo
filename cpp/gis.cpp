@@ -5,7 +5,11 @@
 #include <SWI-Prolog.h>
 #include <SWI-Stream.h>
 
+//DEB
+#include <iostream>
+
 // GEOS C API
+#define GEOS_USE_ONLY_R_API
 #include <geos_c.h>
 
 static const PlAtom ATOM_geos_version {"geos_version"};
@@ -30,12 +34,12 @@ PREDICATE(gis_union_, 3)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  GEOSContextHandle_t cx {GEOS_init_r()};
+  const GEOSContextHandle_t cx {GEOS_init_r()};
   GEOSWKTReader *r = GEOSWKTReader_create_r(cx);
-  GEOSGeometry *g1 = GEOSWKTReader_read_r(cx, r, s1);
-  GEOSGeometry *g2 = GEOSWKTReader_read_r(cx, r, s2);
+  const GEOSGeometry *g1 = GEOSWKTReader_read_r(cx, r, s1);
+  const GEOSGeometry *g2 = GEOSWKTReader_read_r(cx, r, s2);
   GEOSWKTReader_destroy_r(cx, r);
-  GEOSGeometry *g3 = GEOSUnion_r(cx, g1, g2);
+  const GEOSGeometry *g3 = GEOSUnion_r(cx, g1, g2);
   GEOSWKTWriter *w = GEOSWKTWriter_create_r(cx);
   const char *s3 {GEOSWKTWriter_write_r(cx, w, g3)};
   GEOSWKTWriter_destroy_r(cx, w);
