@@ -27,6 +27,31 @@ PREDICATE(gis_property_, 1)
   }
 }
 
+// gis_contains_(+Wkt1:atom, +Wkt2:atom) is semidet.
+PREDICATE(gis_contains_, 2)
+{
+  size_t len1, len2;
+  char *s1, *s2;
+  if (!PL_get_nchars(A1, &len1, &s1, CVT_ATOM) ||
+      !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
+    PL_fail;
+  }
+  const GEOSContextHandle_t handle {GEOS_init_r()};
+  const GEOSGeometry *g1 = parse_geometry(handle, s1);
+  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const char status {GEOSContains_r(handle, g1, g2)};
+  GEOS_finish_r(handle);
+  switch(status) {
+  case 0:
+    PL_fail;
+  case 1:
+    PL_succeed;
+  default:
+    std::cerr << "Cannot determine whether or not two shapes touch.\n";
+    PL_fail;
+  }
+}
+
 // gis_distance_(+Wkt1:atom, +Wkt2:atom, -Distance:float) is semidet.
 PREDICATE(gis_distance_, 3)
 {
@@ -92,6 +117,31 @@ PREDICATE(gis_union_, 3)
   GEOSWKTWriter_destroy_r(handle, w);
   return A3 = s3;
   GEOS_finish_r(handle);
+}
+
+// gis_within_(+Wkt1:atom, +Wkt2:atom) is semidet.
+PREDICATE(gis_within_, 2)
+{
+  size_t len1, len2;
+  char *s1, *s2;
+  if (!PL_get_nchars(A1, &len1, &s1, CVT_ATOM) ||
+      !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
+    PL_fail;
+  }
+  const GEOSContextHandle_t handle {GEOS_init_r()};
+  const GEOSGeometry *g1 = parse_geometry(handle, s1);
+  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const char status {GEOSWithin_r(handle, g1, g2)};
+  GEOS_finish_r(handle);
+  switch(status) {
+  case 0:
+    PL_fail;
+  case 1:
+    PL_succeed;
+  default:
+    std::cerr << "Cannot determine whether or not two shapes touch.\n";
+    PL_fail;
+  }
 }
 
 // shape_type_(+Wkt:atom, -Type:atom) is det.

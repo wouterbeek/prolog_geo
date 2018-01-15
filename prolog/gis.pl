@@ -8,10 +8,12 @@
     distance_greatcircle/3, % +Point1, +Point2, -Distance
     distance_greatcircle/4, % +Point1, +Point2, -Distance, +Unit
     distance_pythagorean/3, % +Point1, +Point2, -Distance
+    gis_contains/2,         % +Wkt1, +Wkt2
     gis_distance/3,         % +Wkt1, +Wkt2, -Distance
     gis_property/1,         % ?Property
     gis_touches/2,          % +Wkt1, +Wkt2
     gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
+    gis_within/2,           % +Wkt1, +Wkt2
     iri_shape/2,            % ?Iri, ?Shape
     is_shape/1,             % +Shape
     shape_dimensionality/2, % +Shape, -Dimensionality
@@ -131,6 +133,13 @@ distance_pythagorean(point(X1,Y1), point(X2,Y2), Distance) :-
 
 
 
+%! gis_contains(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_contains(Wkt1, Wkt2) :-
+  gis_contains_(Wkt1, Wkt2).
+
+
+
 %! gis_distance(+Wkt1:compound, +Wkt2:compound, -Distance:float) is det.
 
 gis_distance(Wkt1, Wkt2, Distance) :-
@@ -159,6 +168,13 @@ gis_touches(Wkt1, Wkt2) :-
 
 gis_union(Wkt1, Wkt2, Wkt3) :-
   gis_union_(Wkt1, Wkt2, Wkt3).
+
+
+
+%! gis_within(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_within(Wkt1, Wkt2) :-
+  gis_within_(Wkt1, Wkt2).
 
 
 
