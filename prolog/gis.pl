@@ -8,6 +8,7 @@
     distance_greatcircle/3, % +Point1, +Point2, -Distance
     distance_greatcircle/4, % +Point1, +Point2, -Distance, +Unit
     distance_pythagorean/3, % +Point1, +Point2, -Distance
+    geometry_shape/2,       % ?Geometry, ?Shape
     gis_contains/2,         % +Wkt1, +Wkt2
     gis_distance/3,         % +Wkt1, +Wkt2, -Distance
     gis_intersects/2,       % +Wkt1, +Wkt2
@@ -15,7 +16,6 @@
     gis_touches/2,          % +Wkt1, +Wkt2
     gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
     gis_within/2,           % +Wkt1, +Wkt2
-    iri_shape/2,            % ?Iri, ?Shape
     is_shape/1,             % +Shape
     literal_shape/2,        % +Literal, -Shape
     shape_dimensionality/2, % +Shape, -Dimensionality
@@ -38,7 +38,7 @@
 :- use_foreign_library(foreign(gis)).
 
 :- rdf_meta
-   iri_shape(r, -).
+   geometry_shape(r, -),
    literal_shape(o, -).
 
 
@@ -188,10 +188,9 @@ gis_within(Wkt1, Wkt2) :-
 
 
 
-%! iri_shape(?Iri:atom, ?Shape:compound) is nondet.
+%! geometry_shape(?Geometry:rdf_nonliteral, ?Shape:compound) is nondet.
 
-iri_shape(Iri, Shape) :-
-  rdf_has(Iri, geo:hasGeometry, Geometry),
+geometry_shape(Geometry, Shape) :-
   rdf_has(Geometry, geo:asWKT, literal(type(geo:wktLiteral,Lex))),
   atom_phrase(wkt_parse(Shape), Lex).
 
