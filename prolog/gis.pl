@@ -10,6 +10,7 @@
     distance_pythagorean/3, % +Point1, +Point2, -Distance
     gis_contains/2,         % +Wkt1, +Wkt2
     gis_distance/3,         % +Wkt1, +Wkt2, -Distance
+    gis_intersects/2,       % +Wkt1, +Wkt2
     gis_property/1,         % ?Property
     gis_touches/2,          % +Wkt1, +Wkt2
     gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
@@ -154,6 +155,13 @@ gis_property(Property) :-
   gis_property_(Property).
 
 gis_property__(geos_version(_)).
+
+
+
+%! gis_intersects(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_intersects(Wkt1, Wkt2) :-
+  gis_intersects_(Wkt1, Wkt2).
 
 
 

@@ -74,6 +74,31 @@ PREDICATE(gis_distance_, 3)
   }
 }
 
+// gis_intersects_(+Wkt1:atom, +Wkt2:atom) is semidet.
+PREDICATE(gis_intersects_, 2)
+{
+  size_t len1, len2;
+  char *s1, *s2;
+  if (!PL_get_nchars(A1, &len1, &s1, CVT_ATOM) ||
+      !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
+    PL_fail;
+  }
+  const GEOSContextHandle_t handle {GEOS_init_r()};
+  const GEOSGeometry *g1 = parse_geometry(handle, s1);
+  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const char status {GEOSIntersects_r(handle, g1, g2)};
+  GEOS_finish_r(handle);
+  switch(status) {
+  case 0:
+    PL_fail;
+  case 1:
+    PL_succeed;
+  default:
+    std::cerr << "Cannot determine whether or not two shapes intersect.\n";
+    PL_fail;
+  }
+}
+
 // gis_touches_(+Wkt1:atom, +Wkt2:atom) is semidet.
 PREDICATE(gis_touches_, 2)
 {
