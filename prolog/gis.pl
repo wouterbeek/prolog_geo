@@ -17,6 +17,7 @@
     gis_within/2,           % +Wkt1, +Wkt2
     iri_shape/2,            % ?Iri, ?Shape
     is_shape/1,             % +Shape
+    literal_shape/2,        % +Literal, -Shape
     shape_dimensionality/2, % +Shape, -Dimensionality
     shape_type/2            % +Wkt, ?Type
   ]
@@ -38,6 +39,7 @@
 
 :- rdf_meta
    iri_shape(r, -).
+   literal_shape(o, -).
 
 
 
@@ -201,6 +203,13 @@ iri_shape(Iri, Shape) :-
 
 is_shape(Shape) :-
   shape_dimensionality(Shape, _).
+
+
+
+%! literal_shape(+Literal:compound, -Shape:compound) is det.
+
+literal_shape(literal(type(geo:wktLiteral,Lex)), Shape) :-
+  atom_phrase(wkt_parse(Shape), Lex).
 
 
 
