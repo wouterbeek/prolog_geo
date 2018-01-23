@@ -14,7 +14,17 @@
 
 static const PlAtom ATOM_geos_version {"geos_version"};
 
-GEOSGeometry *parse_geometry(const GEOSContextHandle_t handle, const char *s);
+GEOSGeometry *parse_geometry(const char *s);
+
+const GEOSContextHandle_t handle {GEOS_init_r()};
+const GEOSWKTWriter *w = GEOSWKTWriter_create_r(handle);
+
+// gis_halt_ is det.
+PREDICATE(gis_halt_, 0)
+{
+  GEOS_finish_r(handle);
+  PL_succeed;
+}
 
 // gis_property_(?Property:compound) is det.
 PREDICATE(gis_property_, 1)
@@ -36,11 +46,9 @@ PREDICATE(gis_contains_, 2)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g1 = parse_geometry(handle, s1);
-  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const GEOSGeometry *g1 = parse_geometry(s1);
+  const GEOSGeometry *g2 = parse_geometry(s2);
   const char status {GEOSContains_r(handle, g1, g2)};
-  GEOS_finish_r(handle);
   switch(status) {
   case 0:
     PL_fail;
@@ -62,11 +70,9 @@ PREDICATE(gis_distance_, 3)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g1 = parse_geometry(handle, s1);
-  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const GEOSGeometry *g1 = parse_geometry(s1);
+  const GEOSGeometry *g2 = parse_geometry(s2);
   int rc = GEOSDistance_r(handle, g1, g2, &dist);
-  GEOS_finish_r(handle);
   if (rc == 1) {
     return (A3 = dist);
   } else {
@@ -83,11 +89,9 @@ PREDICATE(gis_intersects_, 2)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g1 = parse_geometry(handle, s1);
-  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const GEOSGeometry *g1 = parse_geometry(s1);
+  const GEOSGeometry *g2 = parse_geometry(s2);
   const char status {GEOSIntersects_r(handle, g1, g2)};
-  GEOS_finish_r(handle);
   switch(status) {
   case 0:
     PL_fail;
@@ -108,11 +112,9 @@ PREDICATE(gis_touches_, 2)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g1 = parse_geometry(handle, s1);
-  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const GEOSGeometry *g1 = parse_geometry(s1);
+  const GEOSGeometry *g2 = parse_geometry(s2);
   const char status {GEOSTouches_r(handle, g1, g2)};
-  GEOS_finish_r(handle);
   switch(status) {
   case 0:
     PL_fail;
@@ -133,15 +135,12 @@ PREDICATE(gis_union_, 3)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g1 = parse_geometry(handle, s1);
-  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const GEOSGeometry *g1 = parse_geometry(s1);
+  const GEOSGeometry *g2 = parse_geometry(s2);
   const GEOSGeometry *g3 = GEOSUnion_r(handle, g1, g2);
-  GEOSWKTWriter *w = GEOSWKTWriter_create_r(handle);
   const char *s3 {GEOSWKTWriter_write_r(handle, w, g3)};
   GEOSWKTWriter_destroy_r(handle, w);
   return A3 = s3;
-  GEOS_finish_r(handle);
 }
 
 // gis_within_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -153,11 +152,9 @@ PREDICATE(gis_within_, 2)
       !PL_get_nchars(A2, &len2, &s2, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g1 = parse_geometry(handle, s1);
-  const GEOSGeometry *g2 = parse_geometry(handle, s2);
+  const GEOSGeometry *g1 = parse_geometry(s1);
+  const GEOSGeometry *g2 = parse_geometry(s2);
   const char status {GEOSWithin_r(handle, g1, g2)};
-  GEOS_finish_r(handle);
   switch(status) {
   case 0:
     PL_fail;
@@ -177,14 +174,12 @@ PREDICATE(shape_type_, 2)
   if (!PL_get_nchars(A1, &len, &s, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSContextHandle_t handle {GEOS_init_r()};
-  const GEOSGeometry *g = parse_geometry(handle, s);
+  const GEOSGeometry *g = parse_geometry(s);
   int rc = (A2 = GEOSGeomType_r(handle, g));
-  GEOS_finish_r(handle);
   return rc;
 }
 
-GEOSGeometry *parse_geometry(const GEOSContextHandle_t handle, const char *s)
+GEOSGeometry *parse_geometry(const char *s)
 {
   GEOSWKTReader *r = GEOSWKTReader_create_r(handle);
   GEOSGeometry *g = GEOSWKTReader_read_r(handle, r, s);
