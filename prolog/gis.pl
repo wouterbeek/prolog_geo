@@ -14,12 +14,14 @@
     gis_intersects/2,       % +Wkt1, +Wkt2
     gis_property/1,         % ?Property
     gis_touches/2,          % +Wkt1, +Wkt2
+    gis_type/2,             % +Wkt, ?Type
     gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
     gis_within/2,           % +Wkt1, +Wkt2
     is_shape/1,             % +Shape
     literal_shape/2,        % +Literal, -Shape
     shape_dimensionality/2, % +Shape, -Dimensionality
-    shape_type/2            % +Wkt, ?Type
+    shape_type/1,           % ?Type
+    shape_type/2            % +Shape, -Type
   ]
 ).
 
@@ -29,6 +31,7 @@
 @version 2018/01
 */
 
+:- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(geo/wkt_parse)).
 :- use_module(library(semweb/rdf_api)).
@@ -136,6 +139,14 @@ distance_pythagorean(point(X1,Y1), point(X2,Y2), Distance) :-
 
 
 
+%! geometry_shape(?Geometry:rdf_nonliteral, ?Shape:compound) is nondet.
+
+geometry_shape(Geometry, Shape) :-
+  rdf_has(Geometry, geo:asWKT, Literal),
+  literal_shape(Literal, Shape).
+
+
+
 %! gis_contains(+Wkt1:atom, +Wkt2:atom) is semidet.
 
 gis_contains(Wkt1, Wkt2) :-
@@ -174,6 +185,14 @@ gis_touches(Wkt1, Wkt2) :-
 
 
 
+%! gis_type(+Wkt:atom, +Type:atom) is semidet.
+%! gis_type(+Wkt:atom, -Type:atom) is det.
+
+gis_type(Wkt, Type) :-
+  shape_type_(Wkt, Type).
+
+
+
 %! gis_union(+Wkt1:atom, +Wkt2:atom, +Wkt3:atom) is det.
 
 gis_union(Wkt1, Wkt2, Wkt3) :-
@@ -185,14 +204,6 @@ gis_union(Wkt1, Wkt2, Wkt3) :-
 
 gis_within(Wkt1, Wkt2) :-
   gis_within_(Wkt1, Wkt2).
-
-
-
-%! geometry_shape(?Geometry:rdf_nonliteral, ?Shape:compound) is nondet.
-
-geometry_shape(Geometry, Shape) :-
-  rdf_has(Geometry, geo:asWKT, literal(type(geo:wktLiteral,Lex))),
-  atom_phrase(wkt_parse(Shape), Lex).
 
 
 
@@ -214,32 +225,41 @@ literal_shape(literal(type(geo:wktLiteral,Lex)), Shape) :-
 
 %! shape_dimensionality(+Shape:compound, -Dimensionality:nonneg) is det.
 
-shape_dimensionality(box(Point,_), Dim) :- !,
-  shape_dimensionality(Point, Dim).
-shape_dimensionality('CircularString'(Point,_,_), Dim) :- !,
-  shape_dimensionality(Point, Dim).
-shape_dimensionality('GeometryCollection'([Geom|_]), Dim) :- !,
-  shape_dimensionality(Geom, Dim).
-shape_dimensionality('LineString'([Point|_]), Dim) :- !,
-  shape_dimensionality(Point, Dim).
-shape_dimensionality('MultiLineString'([LineString|_]), Dim) :- !,
-  shape_dimensionality(LineString, Dim).
-shape_dimensionality('MultiPoint'([Point|_]), Dim) :- !,
-  shape_dimensionality(Point, Dim).
-shape_dimensionality('MultiPolygon'([Polygon|_]), Dim) :- !,
-  shape_dimensionality(Polygon, Dim).
-shape_dimensionality('Polygon'([[Point|_]|_]), Dim) :- !,
-  shape_dimensionality(Point, Dim).
-shape_dimensionality(Shape, Dim) :-
-  ground(Shape), !,
-  functor(Shape, 'Point', Dim).
+%shape_dimensionality('CircularString'([H|_]), Dim) :- !,
+%  shape_dimensionality(H, Dim).
+%shape_dimensionality('GeometryCollection'([H|_]), Dim) :- !,
+%  shape_dimensionality(H, Dim).
+shape_dimensionality('LineString'([H|_]), Dim) :- !,
+  shape_dimensionality(H, Dim).
+shape_dimensionality('MultiLineString'([H|_]), Dim) :- !,
+  shape_dimensionality(H, Dim).
+%shape_dimensionality('MultiPoint'([H|_]), Dim) :- !,
+%  shape_dimensionality(H, Dim).
+shape_dimensionality('MultiPolygon'([H|_]), Dim) :- !,
+  shape_dimensionality(H, Dim).
+shape_dimensionality('Point'(_), 1) :- !.
+shape_dimensionality('Point'(_,_), 2) :- !.
+shape_dimensionality('Point'(_,_,_), 3) :- !.
+shape_dimensionality('Polygon'([H|_]), Dim) :- !,
+  shape_dimensionality(H, Dim).
 shape_dimensionality(Shape, _) :-
   type_error(shape, Shape).
 
 
 
-%! shape_type(+Wkt:atom, +Type:atom) is semidet.
-%! shape_type(+Wkt:atom, -Type:atom) is det.
+%! shape_type(+Type:atom) is semidet.
+%! shape_type(-Type:atom) is multi.
 
-shape_type(Wkt, Type) :-
-  shape_type_(Wkt, Type).
+shape_type('LineString').
+shape_type('MultiLineString').
+shape_type('MultiPolygon').
+shape_type('Point').
+shape_type('Polygon').
+
+
+
+%! shape_type(+Shape:compound, -Type:atom) is det.
+
+shape_type(Shape, Type) :-
+  functor(Shape, Type, _),
+  call_must_be(shape_type, Type).
