@@ -31,9 +31,13 @@
 :- use_module(library(shlib)).
 
 :- use_module(library(dcg/dcg)).
-:- use_module(library(geo/wkt_parse)).
+:- use_module(library(gis/wkt_parse)).
+:- use_module(library(sw/rdf_prefix)).
+:- use_module(library(sw/rdf_term)).
 
 :- use_foreign_library(foreign(gis)).
+
+:- rdf_assert_prefix(geo, 'http://www.opengis.net/ont/geosparql#').
 
 :- rdf_meta
    geometry_shape(r, -),

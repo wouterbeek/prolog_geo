@@ -1,4 +1,4 @@
-:- use_module(library(gis)).
+:- use_module(library(gis/gis)).
 
 test(Wkt) :-
   gis_union(
