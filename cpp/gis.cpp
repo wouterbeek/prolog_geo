@@ -17,7 +17,7 @@ static const PlAtom ATOM_geos_version {"geos_version"};
 GEOSGeometry *parse_geometry(const char *s);
 
 const GEOSContextHandle_t handle {GEOS_init_r()};
-const GEOSWKTWriter *w = GEOSWKTWriter_create_r(handle);
+GEOSWKTWriter *w = GEOSWKTWriter_create_r(handle);
 
 // gis_halt_ is det.
 PREDICATE(gis_halt_, 0)
