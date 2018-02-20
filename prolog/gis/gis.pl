@@ -1,20 +1,28 @@
 :- module(
   gis,
   [
-    geometry_shape/2,       % ?Geometry, ?Shape
-    gis_contains/2,         % +Wkt1, +Wkt2
-    gis_distance/3,         % +Wkt1, +Wkt2, -Distance
-    gis_intersects/2,       % +Wkt1, +Wkt2
-    gis_property/1,         % ?Property
-    gis_touches/2,          % +Wkt1, +Wkt2
-    gis_type/2,             % +Wkt, ?Type
-    gis_union/3,            % +Wkt1, +Wkt2, -Wkt3
-    gis_within/2,           % +Wkt1, +Wkt2
-    is_shape/1,             % +Shape
-    literal_shape/2,        % +Literal, -Shape
-    shape_dimensionality/2, % +Shape, -Dimensionality
-    shape_type/1,           % ?Type
-    shape_type/2            % +Shape, -Type
+    gis_boundary/2,             % +Wkt, -Boundary
+    gis_contains/2,             % +Wkt1, +Wkt2
+    gis_convex_hull/2,          % +Wkt, -ConvexHull
+    gis_crosses/2,              % +Wkt1, +Wkt2
+    gis_difference/3,           % +Wkt1, +Wkt2, -Difference
+    gis_disjoint/2,             % +Wkt1, +Wkt2
+    gis_distance/3,             % +Wkt1, +Wkt2, -Distance
+    gis_envelope/2,             % +Wkt, -Envelope
+    gis_equals/2,               % +Wkt1, +Wkt2
+    gis_intersection/3,         % +Wkt1, +Wkt2, -Intersection
+    gis_intersects/2,           % +Wkt1, +Wkt2
+    gis_overlaps/2,             % +Wkt1, +Wkt2
+    gis_property/1,             % ?Property
+    gis_symmetric_difference/3, % +Wkt1, +Wkt2, -Difference
+    gis_touches/2,              % +Wkt1, +Wkt2
+    gis_type/2,                 % +Wkt, ?Type
+    gis_union/3,                % +Wkt1, +Wkt2, -Wkt3
+    gis_within/2,               % +Wkt1, +Wkt2
+    is_shape/1,                 % +Shape
+    shape_dimensionality/2,     % +Shape, -Dimensionality
+    shape_type/1,               % ?Type
+    shape_type/2                % +Shape, -Type
   ]
 ).
 
@@ -31,7 +39,6 @@
 :- use_module(library(shlib)).
 
 :- use_module(library(dcg/dcg)).
-:- use_module(library(gis/wkt_parse)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
 
@@ -39,19 +46,14 @@
 
 :- rdf_assert_prefix(geo, 'http://www.opengis.net/ont/geosparql#').
 
-:- rdf_meta
-   geometry_shape(r, -),
-   literal_shape(o, -).
 
 
 
 
+%! gis_boundary(+Wkt:atom, -Boundary:atom) is det.
 
-%! geometry_shape(?Geometry:rdf_nonliteral, ?Shape:compound) is nondet.
-
-geometry_shape(Geometry, Shape) :-
-  rdf_has(Geometry, geo:asWKT, Literal),
-  literal_shape(Literal, Shape).
+gis_boundary(Wkt, Boundary) :-
+  gis_boundary_(Wkt, Boundary).
 
 
 
@@ -62,10 +64,73 @@ gis_contains(Wkt1, Wkt2) :-
 
 
 
-%! gis_distance(+Wkt1:compound, +Wkt2:compound, -Distance:float) is det.
+%! gis_convex_hull(+Wkt:atom, -ConvexHull:atom) is det.
+
+gis_convex_hull(Wkt, ConvexHull) :-
+  gis_convex_hull_(Wkt, ConvexHull).
+
+
+
+%! gis_crosses(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_crosses(Wkt1, Wkt2) :-
+  gis_crosses_(Wkt1, Wkt2).
+
+
+
+%! gis_difference(+Wkt1:atom, +Wkt2:atom, -Difference:atom) is det.
+
+gis_difference(Wkt1, Wkt2, Difference) :-
+  gis_difference_(Wkt1, Wkt2, Difference).
+
+
+
+%! gis_disjoint(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_disjoint(Wkt1, Wkt2) :-
+  gis_disjoint_(Wkt1, Wkt2).
+
+
+
+%! gis_distance(+Wkt1:atom, +Wkt2:atom, -Distance:double) is det.
 
 gis_distance(Wkt1, Wkt2, Distance) :-
   gis_distance_(Wkt1, Wkt2, Distance).
+
+
+
+%! gis_envelope(+Wkt:atom, -Envelope:atom) is det.
+
+gis_envelope(Wkt, Envelope) :-
+  gis_envelope_(Wkt, Envelope).
+
+
+
+%! gis_equals(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_equals(Wkt1, Wkt2) :-
+  gis_equals_(Wkt1, Wkt2).
+
+
+
+%! gis_intersection(+Wkt1:atom, +Wkt2:atom, -Intersection:atom) is det.
+
+gis_intersection(Wkt1, Wkt2, Intersection) :-
+  gis_intersection_(Wkt1, Wkt2, Intersection).
+
+
+
+%! gis_intersects(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_intersects(Wkt1, Wkt2) :-
+  gis_intersects_(Wkt1, Wkt2).
+
+
+
+%! gis_overlaps(+Wkt1:atom, +Wkt2:atom) is semidet.
+
+gis_overlaps(Wkt1, Wkt2) :-
+  gis_overlaps_(Wkt1, Wkt2).
 
 
 
@@ -79,10 +144,10 @@ gis_property__(geos_version(_)).
 
 
 
-%! gis_intersects(+Wkt1:atom, +Wkt2:atom) is semidet.
+%! gis_symmetric_difference(+Wkt1:atom, +Wkt2:atom, -Difference:atom) is det.
 
-gis_intersects(Wkt1, Wkt2) :-
-  gis_intersects_(Wkt1, Wkt2).
+gis_symmetric_difference(Wkt1, Wkt2, Difference) :-
+  gis_symmetric_difference_(Wkt1, Wkt2, Difference).
 
 
 
