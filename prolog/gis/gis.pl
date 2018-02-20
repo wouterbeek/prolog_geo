@@ -16,13 +16,8 @@
     gis_property/1,             % ?Property
     gis_symmetric_difference/3, % +Wkt1, +Wkt2, -Difference
     gis_touches/2,              % +Wkt1, +Wkt2
-    gis_type/2,                 % +Wkt, ?Type
     gis_union/3,                % +Wkt1, +Wkt2, -Wkt3
-    gis_within/2,               % +Wkt1, +Wkt2
-    is_shape/1,                 % +Shape
-    shape_dimensionality/2,     % +Shape, -Dimensionality
-    shape_type/1,               % ?Type
-    shape_type/2                % +Shape, -Type
+    gis_within/2                % +Wkt1, +Wkt2
   ]
 ).
 
@@ -158,14 +153,6 @@ gis_touches(Wkt1, Wkt2) :-
 
 
 
-%! gis_type(+Wkt:atom, +Type:atom) is semidet.
-%! gis_type(+Wkt:atom, -Type:atom) is det.
-
-gis_type(Wkt, Type) :-
-  shape_type_(Wkt, Type).
-
-
-
 %! gis_union(+Wkt1:atom, +Wkt2:atom, +Wkt3:atom) is det.
 
 gis_union(Wkt1, Wkt2, Wkt3) :-
@@ -177,12 +164,3 @@ gis_union(Wkt1, Wkt2, Wkt3) :-
 
 gis_within(Wkt1, Wkt2) :-
   gis_within_(Wkt1, Wkt2).
-
-
-
-%! is_shape(+Shape:compound) is det.
-%
-% Checks whether Shape is a valid supported shape.
-
-is_shape(Shape) :-
-  shape_dimensionality(Shape, _).

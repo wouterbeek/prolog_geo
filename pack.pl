@@ -1,8 +1,5 @@
-author('Wouter Beek', 'wouter@triply.cc').
-home('https://github.com/wouterbeek/gis').
+home('https://github.com/wouterbeek/Pro-GIS').
 keywords([geo,gis,wkt]).
-maintainer('Wouter Beek', 'wouter@triply.cc').
-name(gis).
-packager('Wouter Beek', 'wouter@triply.cc').
-title(gis).
+name('Pro-GIS').
+title('Pro-GIS').
 version('0.0.1').
