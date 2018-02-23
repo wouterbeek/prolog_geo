@@ -33,7 +33,7 @@
    ]).
 :- use_module(library(shlib)).
 
-:- use_module(library(dcg/dcg)).
+:- use_module(library(dcg)).
 :- use_module(library(sw/rdf_prefix)).
 :- use_module(library(sw/rdf_term)).
 
