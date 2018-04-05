@@ -12,7 +12,7 @@
 */
 
 :- reexport(library(gis/wkt_generate)).
-:- reexport(library(gis/wkt_parse)).
+:- reexport(library(gis/wkt_parser)).
 
 
 
