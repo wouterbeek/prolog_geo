@@ -36,9 +36,10 @@ wkt_dimensionality('MultiLineString'([H|_]), Dim) :- !,
 %  wkt_dimensionality(H, Dim).
 wkt_dimensionality('MultiPolygon'([H|_]), Dim) :- !,
   wkt_dimensionality(H, Dim).
-wkt_dimensionality('Point'(_), 1) :- !.
-wkt_dimensionality('Point'(_,_), 2) :- !.
-wkt_dimensionality('Point'(_,_,_), 3) :- !.
+wkt_dimensionality('Point'([_]), 1) :- !.
+wkt_dimensionality('Point'([_,_]), 2) :- !.
+wkt_dimensionality('Point'([_,_,_]), 3) :- !.
+wkt_dimensionality('Point'([_,_,_,_]), 4) :- !.
 wkt_dimensionality('Polygon'([H|_]), Dim) :- !,
   wkt_dimensionality(H, Dim).
 wkt_dimensionality(Shape, _) :-
@@ -107,8 +108,8 @@ circularstring_text_representation(Z, LRS, CircularString) -->
 
 
 
-collection_text_representation(Z, LRS, Multipoint) -->
-  multipoint_text_representation(Z, LRS, Multipoint), !.
+collection_text_representation(Z, LRS, MultiPoint) -->
+  multipoint_text_representation(Z, LRS, MultiPoint), !.
 collection_text_representation(Z, LRS, MultiCurve) -->
   multicurve_text_representation(Z, LRS, MultiCurve), !.
 collection_text_representation(Z, LRS, MultiSurface) -->
@@ -120,11 +121,11 @@ collection_text_representation(Z, LRS, GeometryCollection) -->
 
 % CompoundCurve
 
-compoundcurve_text(Z, LRS, 'CompoundCurve'(SingleCurve)) -->
+compoundcurve_text(Z, LRS, 'CompoundCurve'(Curves)) -->
   (   "("
-  ->  'wkt+'(single_curve_text(Z, LRS), SingleCurve),
+  ->  'wkt+'(single_curve_text(Z, LRS), Curves),
       must_see_code(0'))
-  ;   empty(SingleCurve)
+  ;   empty(Curves)
   ).
 
 compoundcurve_text_representation(Z, LRS, CompoundCurve) -->
@@ -391,11 +392,12 @@ tin_text_representation(Z, LRS, Tin) -->
 
 % Triangle
 
-triangle_text(Z, LRS, 'Triangle'(Points)) -->
+triangle_text(Z, LRS, 'Triangle'(Content)) -->
   (   "("
-  ->  linestring_text(Z, LRS, 'LineString'(Points)),
+  ->  linestring_text(Z, LRS, LineString),
+      {Content = [LineString]},
       must_see_code(0'))
-  ;   empty(Points)
+  ;   empty(Content)
   ).
 
 triangle_text_body(Z, LRS, Triangle) -->
@@ -458,7 +460,7 @@ must_see_code(C) -->
 
 %! point(+Z:boolean, +LRS:boolean, -Point:compound)// is det.
 
-point(true, true, 'Point'(X,Y,Z,LRS)) --> !,
+point(true, true, 'Point'([X,Y,Z,LRS])) --> !,
   'X'(X),
   must_see_code(0' ),
   blanks,
@@ -469,7 +471,7 @@ point(true, true, 'Point'(X,Y,Z,LRS)) --> !,
   must_see_code(0' ),
   blanks,
   m(LRS).
-point(true, false, 'Point'(X,Y,Z)) --> !,
+point(true, false, 'Point'([X,Y,Z])) --> !,
   'X'(X),
   must_see_code(0' ),
   blanks,
@@ -478,7 +480,7 @@ point(true, false, 'Point'(X,Y,Z)) --> !,
   blanks,
   'Z'(Z),
   blanks.
-point(false, true, 'Point'(X,Y,LRS)) --> !,
+point(false, true, 'Point'([X,Y,LRS])) --> !,
   'X'(X),
   must_see_code(0' ),
   blanks,
@@ -487,7 +489,7 @@ point(false, true, 'Point'(X,Y,LRS)) --> !,
   blanks,
   'm'(LRS),
   blanks.
-point(false, false, 'Point'(X,Y)) -->
+point(false, false, 'Point'([X,Y])) -->
   'X'(X),
   must_see_code(0' ),
   blanks,
