@@ -22,31 +22,6 @@
 
 
 
-%! wkt_dimensionality(+Shape:compound, -Dimensionality:nonneg) is det.
-
-%wkt_dimensionality('CircularString'([H|_]), Dim) :- !,
-%  wkt_dimensionality(H, Dim).
-%wkt_dimensionality('GeometryCollection'([H|_]), Dim) :- !,
-%  wkt_dimensionality(H, Dim).
-wkt_dimensionality('LineString'([H|_]), Dim) :- !,
-  wkt_dimensionality(H, Dim).
-wkt_dimensionality('MultiLineString'([H|_]), Dim) :- !,
-  wkt_dimensionality(H, Dim).
-%wkt_dimensionality('MultiPoint'([H|_]), Dim) :- !,
-%  wkt_dimensionality(H, Dim).
-wkt_dimensionality('MultiPolygon'([H|_]), Dim) :- !,
-  wkt_dimensionality(H, Dim).
-wkt_dimensionality('Point'([_]), 1) :- !.
-wkt_dimensionality('Point'([_,_]), 2) :- !.
-wkt_dimensionality('Point'([_,_,_]), 3) :- !.
-wkt_dimensionality('Point'([_,_,_,_]), 4) :- !.
-wkt_dimensionality('Polygon'([H|_]), Dim) :- !,
-  wkt_dimensionality(H, Dim).
-wkt_dimensionality(Shape, _) :-
-  type_error(shape, Shape).
-
-
-
 %! wkt_parse(-Shape:compound)// is det.
 %! wkt_parse(-Z:boolean, -LRS:boolean, -Crs:atom, -Shape:compound)// is det.
 
@@ -64,27 +39,6 @@ wkt_parse(Z, LRS, Crs, Shape) -->
   ;   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
   ),
   wkt_representation(Z, LRS, Shape).
-
-
-
-%! wkt_type(+Type:atom) is semidet.
-%! wkt_type(-Type:atom) is multi.
-
-wkt_type('LineString').
-wkt_type('MultiLineString').
-wkt_type('MultiPolygon').
-wkt_type('Point').
-wkt_type('Polygon').
-
-
-
-%! wkt_type(+Shape:compound, -Type:atom) is det.
-
-wkt_type(Shape, Type) :-
-  functor(Shape, Type, _),
-  call_must_be(wkt_type, Type).
-
-
 
 
 
