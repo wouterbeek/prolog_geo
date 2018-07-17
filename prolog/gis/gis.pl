@@ -27,19 +27,9 @@
 @version 2018
 */
 
-:- use_module(library(error)).
-:- use_module(library(semweb/rdf_db), [
-     rdf_has/3
-   ]).
 :- use_module(library(shlib)).
 
-:- use_module(library(dcg)).
-:- use_module(library(sw/rdf_prefix)).
-:- use_module(library(sw/rdf_term)).
-
 :- use_foreign_library(foreign(gis)).
-
-:- rdf_assert_prefix(geo, 'http://www.opengis.net/ont/geosparql#').
 
 
 
