@@ -1,23 +1,14 @@
 :- module(
   gis,
   [
-    gis_boundary/2,             % +Wkt, -Boundary
-    gis_contains/2,             % +Wkt1, +Wkt2
-    gis_convex_hull/2,          % +Wkt, -ConvexHull
-    gis_crosses/2,              % +Wkt1, +Wkt2
-    gis_difference/3,           % +Wkt1, +Wkt2, -Difference
-    gis_disjoint/2,             % +Wkt1, +Wkt2
-    gis_distance/3,             % +Wkt1, +Wkt2, -Distance
-    gis_envelope/2,             % +Wkt, -Envelope
-    gis_equals/2,               % +Wkt1, +Wkt2
-    gis_intersection/3,         % +Wkt1, +Wkt2, -Intersection
-    gis_intersects/2,           % +Wkt1, +Wkt2
-    gis_overlaps/2,             % +Wkt1, +Wkt2
-    gis_property/1,             % ?Property
-    gis_symmetric_difference/3, % +Wkt1, +Wkt2, -Difference
-    gis_touches/2,              % +Wkt1, +Wkt2
-    gis_union/3,                % +Wkt1, +Wkt2, -Wkt3
-    gis_within/2                % +Wkt1, +Wkt2
+    gis_area/2,            % +Shape, -Area
+    gis_is_shape/1,        % @Term
+    gis_max/2,             % +Shape, -Maximums
+    gis_min/2,             % +Shape, -Minimums
+    gis_property/1,        % ?Property
+    gis_shape_dimension/2, % +Shape, -Dimension
+    gis_shape_type/2,      % +Shape, -Type
+    gis_type/1             % ?Type
   ]
 ).
 
@@ -27,6 +18,9 @@
 @version 2018
 */
 
+:- use_module(library(apply)).
+:- use_module(library(error)).
+:- use_module(library(lists)).
 :- use_module(library(shlib)).
 
 :- use_foreign_library(foreign(gis)).
@@ -35,87 +29,109 @@
 
 
 
-%! gis_boundary(+Wkt:atom, -Boundary:atom) is det.
+%! gis_area(+Shape:compound, -Area:float) is det.
 
-gis_boundary(Wkt, Boundary) :-
-  gis_boundary_(Wkt, Boundary).
+gis_area('Line'(_), 0.0) :- !.
+gis_area('MultiLine'(_), 0.0) :- !.
+gis_area('MultiPoint'(_), 0.0) :- !.
+gis_area('MultiPolygon'(Polygons), Area) :- !,
+  maplist(polygon_area, Polygons, Areas),
+  sum_list(Areas, Area).
+gis_area('Point'(_), 0.0) :- !.
+gis_area('Polygon'(Coords), Area) :-
+  polygon_area(Coords, Area).
 
+polygon_area([Coords], Area) :- !,
+  polygon_area(Coords, 0.0, Area).
+polygon_area([Coords1,Coords2], Area) :-
+  polygon_area(Coords1, Area1),
+  polygon_area(Coords2, Area2),
+  Area is abs(Area1 - Area2).
 
-
-%! gis_contains(+Wkt1:atom, +Wkt2:atom) is semidet.
-
-gis_contains(Wkt1, Wkt2) :-
-  gis_contains_(Wkt1, Wkt2).
-
-
-
-%! gis_convex_hull(+Wkt:atom, -ConvexHull:atom) is det.
-
-gis_convex_hull(Wkt, ConvexHull) :-
-  gis_convex_hull_(Wkt, ConvexHull).
-
-
-
-%! gis_crosses(+Wkt1:atom, +Wkt2:atom) is semidet.
-
-gis_crosses(Wkt1, Wkt2) :-
-  gis_crosses_(Wkt1, Wkt2).
-
-
-
-%! gis_difference(+Wkt1:atom, +Wkt2:atom, -Difference:atom) is det.
-
-gis_difference(Wkt1, Wkt2, Difference) :-
-  gis_difference_(Wkt1, Wkt2, Difference).
+polygon_area([[X1,Y1|_],[X2,Y2|T2]|Coords], Sum1, Area) :- !,
+  Sum2 is Sum1 + (X1 * Y2) - (Y1 * X2),
+  polygon_area([[X2,Y2|T2]|Coords], Sum2, Area).
+polygon_area(_, Sum, Area) :-
+  Area is abs(Sum / 2.0).
 
 
 
-%! gis_disjoint(+Wkt1:atom, +Wkt2:atom) is semidet.
+%! gis_is_shape(@Term) is semidet.
 
-gis_disjoint(Wkt1, Wkt2) :-
-  gis_disjoint_(Wkt1, Wkt2).
-
-
-
-%! gis_distance(+Wkt1:atom, +Wkt2:atom, -Distance:double) is det.
-
-gis_distance(Wkt1, Wkt2, Distance) :-
-  gis_distance_(Wkt1, Wkt2, Distance).
+gis_is_shape(Term) :-
+  gis_shape_type(Term, _).
 
 
 
-%! gis_envelope(+Wkt:atom, -Envelope:atom) is det.
+%! gis_max(+Shape:compound, -Maximums:list(float)) is det.
 
-gis_envelope(Wkt, Envelope) :-
-  gis_envelope_(Wkt, Envelope).
+gis_max(Shape, Maxs) :-
+  gis_shape_dimension(Shape, Dim),
+  gis_max_(Dim, Shape, Maxs).
+
+gis_max_(2, Shape, [X,Y]) :-
+  gis_max_2(Shape, X, Y).
+gis_max_(3, Shape, [X,Y,Z]) :-
+  gis_max_3(Shape, X, Y, Z).
+gis_max_(4, Shape, [X,Y,Z,LRS]) :-
+  gis_max_4(Shape, X, Y, Z, LRS).
+
+gis_max_2('Point'([X,Y]), X, Y) :- !.
+gis_max_2(Shape, X, Y) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_max_2, Shapes, Xs, Ys),
+  maplist(max_list, [Xs,Ys], [X,Y]).
+
+gis_max_3('Point'([X,Y,Z]), X, Y, Z) :- !.
+gis_max_3(Shape, X, Y, Z) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_max_3, Shapes, Xs, Ys, Zs),
+  maplist(max_list, [Xs,Ys,Zs], [X,Y,Z]).
+
+gis_max_4('Point'([X,Y,Z,LRS]), X, Y, Z, LRS) :- !.
+gis_max_4(Shape, X, Y, Z, LRS) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_max_4, Shapes, Xs, Ys, Zs, LRSs),
+  maplist(max_list, [Xs,Ys,Zs,LRSs], [X,Y,Z,LRS]).
 
 
 
-%! gis_equals(+Wkt1:atom, +Wkt2:atom) is semidet.
+%! gis_min(+Shape:compound, -Minimums:list(float)) is det.
 
-gis_equals(Wkt1, Wkt2) :-
-  gis_equals_(Wkt1, Wkt2).
+gis_min(Shape, Mins) :-
+  gis_shape_dimension(Shape, Dim),
+  gis_min_(Dim, Shape, Mins).
 
+gis_min_(2, Shape, [X,Y]) :-
+  gis_min_2(Shape, X, Y).
+gis_min_(3, Shape, [X,Y,Z]) :-
+  gis_min_3(Shape, X, Y, Z).
+gis_min_(4, Shape, [X,Y,Z,LRS]) :-
+  gis_min_4(Shape, X, Y, Z, LRS).
 
+gis_min_2('Point'([X,Y]), X, Y) :- !.
+gis_min_2(Shape, X, Y) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_min_2, Shapes, Xs, Ys),
+  maplist(min_list, [Xs,Ys], [X,Y]).
 
-%! gis_intersection(+Wkt1:atom, +Wkt2:atom, -Intersection:atom) is det.
+gis_min_3('Point'([X,Y,Z]), X, Y, Z) :- !.
+gis_min_3(Shape, X, Y, Z) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_min_3, Shapes, Xs, Ys, Zs),
+  maplist(min_list, [Xs,Ys,Zs], [X,Y,Z]).
 
-gis_intersection(Wkt1, Wkt2, Intersection) :-
-  gis_intersection_(Wkt1, Wkt2, Intersection).
-
-
-
-%! gis_intersects(+Wkt1:atom, +Wkt2:atom) is semidet.
-
-gis_intersects(Wkt1, Wkt2) :-
-  gis_intersects_(Wkt1, Wkt2).
-
-
-
-%! gis_overlaps(+Wkt1:atom, +Wkt2:atom) is semidet.
-
-gis_overlaps(Wkt1, Wkt2) :-
-  gis_overlaps_(Wkt1, Wkt2).
+gis_min_4('Point'([X,Y,Z,LRS]), X, Y, Z, LRS) :- !.
+gis_min_4(Shape, X, Y, Z, LRS) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_min_4, Shapes, Xs, Ys, Zs, LRSs),
+  maplist(min_list, [Xs,Ys,Zs,LRSs], [X,Y,Z,LRS]).
 
 
 
@@ -129,28 +145,54 @@ gis_property__(geos_version(_)).
 
 
 
-%! gis_symmetric_difference(+Wkt1:atom, +Wkt2:atom, -Difference:atom) is det.
+%! gis_shape_dimension(+Shape:compound, -Dimensionality:nonneg) is det.
 
-gis_symmetric_difference(Wkt1, Wkt2, Difference) :-
-  gis_symmetric_difference_(Wkt1, Wkt2, Difference).
-
-
-
-%! gis_touches(+Wkt1:atom, +Wkt2:atom) is semidet.
-
-gis_touches(Wkt1, Wkt2) :-
-  gis_touches_(Wkt1, Wkt2).
-
-
-
-%! gis_union(+Wkt1:atom, +Wkt2:atom, +Wkt3:atom) is det.
-
-gis_union(Wkt1, Wkt2, Wkt3) :-
-  gis_union_(Wkt1, Wkt2, Wkt3).
+gis_shape_dimension('Point'([_]), 1) :- !.
+gis_shape_dimension('Point'([_,_]), 2) :- !.
+gis_shape_dimension('Point'([_,_,_]), 3) :- !.
+gis_shape_dimension('Point'([_,_,_,_]), 4) :- !.
+gis_shape_dimension(Shape, Dim) :-
+  Shape =.. [Type,Shapes],
+  gis_type_check(Type),
+  maplist(gis_shape_dimension, Shapes, [Dim|Dims]),
+  (maplist(=(Dim), Dims) -> true ; type_error(gis_dimensions,[Dim|Dims])).
 
 
 
-%! gis_within(+Wkt1:atom, +Wkt2:atom) is semidet.
+%! gis_shape_type(+Shape:compound, -Type:atom) is det.
 
-gis_within(Wkt1, Wkt2) :-
-  gis_within_(Wkt1, Wkt2).
+gis_shape_type(Shape, Type) :-
+  Shape =.. [Type,_],
+  gis_type_check(Type).
+
+
+
+%! gis_type(+Type:atom) is semidet.
+%! gis_type(-Type:atom) is multi.
+
+gis_type('CircularString').
+gis_type('CompoundCurve').
+gis_type('CurvePolygon').
+gis_type('GeometryCollection').
+gis_type('LineString').
+gis_type('MultiCurve').
+gis_type('MultiLineString').
+gis_type('MultiPoint').
+gis_type('MultiPolygon').
+gis_type('MultiSurface').
+gis_type('Point').
+gis_type('Polygon').
+gis_type('PolyhedralSurface').
+gis_type('TIN').
+gis_type('Triangle').
+
+
+
+
+
+% HELPERS %
+
+gis_type_check(Type) :-
+  gis_type(Type), !.
+gis_type_check(Type) :-
+  existence_error(gis_type, Type).
