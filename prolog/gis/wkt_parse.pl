@@ -1,5 +1,5 @@
 :- module(
-  wkt_parser,
+  wkt_parse,
   [
     wkt_parse//1, % -Shape:compound
     wkt_parse//4  % -Z:boolean, -LRS:boolean, -Crs:atom, -Shape:compound

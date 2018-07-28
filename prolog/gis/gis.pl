@@ -23,6 +23,8 @@
 :- use_module(library(lists)).
 :- use_module(library(shlib)).
 
+:- use_module(library(call_ext)).
+
 :- use_foreign_library(foreign(gis)).
 
 
@@ -38,20 +40,19 @@ gis_area('MultiPolygon'(Polygons), Area) :- !,
   maplist(polygon_area, Polygons, Areas),
   sum_list(Areas, Area).
 gis_area('Point'(_), 0.0) :- !.
-gis_area('Polygon'(Coords), Area) :-
-  polygon_area(Coords, Area).
+gis_area('Polygon'(LineStrings), Area) :-
+  polygon_area(LineStrings, Area).
 
-polygon_area([Coords], Area) :- !,
-  polygon_area(Coords, 0.0, Area).
-polygon_area([Coords1,Coords2], Area) :-
-  polygon_area(Coords1, Area1),
-  polygon_area(Coords2, Area2),
+polygon_area([LineString], Area) :- !,
+  polygon_area_(LineString, 0.0, Area).
+polygon_area([LineString1,LineString2], Area) :-
+  maplist(polygon_area, [LineString1,LineString2], [Area1,Area2]),
   Area is abs(Area1 - Area2).
 
-polygon_area([[X1,Y1|_],[X2,Y2|T2]|Coords], Sum1, Area) :- !,
+polygon_area_([[X1,Y1|_],[X2,Y2|T2]|Coords], Sum1, Area) :- !,
   Sum2 is Sum1 + (X1 * Y2) - (Y1 * X2),
-  polygon_area([[X2,Y2|T2]|Coords], Sum2, Area).
-polygon_area(_, Sum, Area) :-
+  polygon_area_([[X2,Y2|T2]|Coords], Sum2, Area).
+polygon_area_(_, Sum, Area) :-
   Area is abs(Sum / 2.0).
 
 
@@ -145,7 +146,7 @@ gis_property__(geos_version(_)).
 
 
 
-%! gis_shape_dimension(+Shape:compound, -Dimensionality:nonneg) is det.
+%! gis_shape_dimension(+Shape:compound, -Dimension:positive_integer) is det.
 
 gis_shape_dimension('Point'([_]), 1) :- !.
 gis_shape_dimension('Point'([_,_]), 2) :- !.
