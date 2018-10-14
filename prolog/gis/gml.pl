@@ -28,14 +28,12 @@ gml_shape(element('gml:innerBoundaryIs',_,[Dom]), Line) :- !,
   gml_shape(Dom, Line).
 gml_shape(element('gml:interior',_,[Dom]), Shape) :- !,
   gml_shape(Dom, Shape).
-gml_shape(element('gml:LinearRing',_,[Dom]), Line) :- !,
+gml_shape(element('gml:LinearRing',_,[Dom]), 'LineString'(Line)) :- !,
   gml_shape(Dom, Line).
-gml_shape(element('gml:MultiPolygon',_,Dom), 'MultiPolygon'(Polygons2)) :- !,
-  maplist(gml_shape, Dom, Polygons1),
-  maplist(polygon_in_multipolygon, Polygons1, Polygons2).
-gml_shape(element('gml:MultiSurface',_,Dom), 'MultiSurface'(Surfaces2)) :- !,
-  maplist(gml_shape, Dom, Surfaces1),
-  maplist(polygon_in_multipolygon, Surfaces1, Surfaces2).
+gml_shape(element('gml:MultiPolygon',_,Dom), 'MultiPolygon'(Polygons)) :- !,
+  maplist(gml_shape, Dom, Polygons).
+gml_shape(element('gml:MultiSurface',_,Dom), 'MultiSurface'(Surfaces)) :- !,
+  maplist(gml_shape, Dom, Surfaces).
 gml_shape(element('gml:outerBoundaryIs',_, [Dom]), Line) :- !,
   gml_shape(Dom, Line).
 gml_shape(element('gml:Polygon',_,Dom), 'Polygon'(Lines)) :- !,
@@ -48,7 +46,7 @@ gml_shape(element('gml:posList',_,[Coords]), Line) :- !,
 gml_shape(element('gml:surfaceMember',_,[Dom]), Surface) :-
   gml_shape(Dom, Surface).
 
-gml_coords([[X,Y]|T]) -->
+gml_coords(['Point'([X,Y])|T]) -->
   number(X), !,
   blanks, ",", blanks,
   number(Y),
@@ -56,12 +54,10 @@ gml_coords([[X,Y]|T]) -->
   gml_coords(T).
 gml_coords([]) --> "".
 
-gml_poslist([[X,Y]|T]) -->
+gml_poslist(['Point'([X,Y])|T]) -->
   number(X), !,
   blank, blanks,
   number(Y),
   blanks,
   gml_poslist(T).
 gml_poslist([]) --> "".
-
-polygon_in_multipolygon('Polygon'(Polygon), Polygon).
