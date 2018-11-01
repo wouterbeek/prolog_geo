@@ -19,32 +19,39 @@
 
 
 %! gml_shape(+Dom, -Shape) is det.
+%
+% @tbd set Z
+% @tbd set LRS
+% @tbd set CRS
 
-gml_shape(element('gml:coordinates',_,[Coords]), Line) :- !,
+gml_shape(Dom, shape(_Z,_LRS,_Crs,Shape)) :-
+  gml_shape_(Dom, Shape).
+
+gml_shape_(element('gml:coordinates',_,[Coords]), Line) :- !,
   atom_phrase(gml_coords(Line), Coords).
-gml_shape(element('gml:exterior',_,[Dom]), Shape) :- !,
-  gml_shape(Dom, Shape).
-gml_shape(element('gml:innerBoundaryIs',_,[Dom]), Line) :- !,
-  gml_shape(Dom, Line).
-gml_shape(element('gml:interior',_,[Dom]), Shape) :- !,
-  gml_shape(Dom, Shape).
-gml_shape(element('gml:LinearRing',_,[Dom]), 'LineString'(Line)) :- !,
-  gml_shape(Dom, Line).
-gml_shape(element('gml:MultiPolygon',_,Dom), 'MultiPolygon'(Polygons)) :- !,
-  maplist(gml_shape, Dom, Polygons).
-gml_shape(element('gml:MultiSurface',_,Dom), 'MultiSurface'(Surfaces)) :- !,
-  maplist(gml_shape, Dom, Surfaces).
-gml_shape(element('gml:outerBoundaryIs',_, [Dom]), Line) :- !,
-  gml_shape(Dom, Line).
-gml_shape(element('gml:Polygon',_,Dom), 'Polygon'(Lines)) :- !,
+gml_shape_(element('gml:exterior',_,[Dom]), Shape) :- !,
+  gml_shape_(Dom, Shape).
+gml_shape_(element('gml:innerBoundaryIs',_,[Dom]), Line) :- !,
+  gml_shape_(Dom, Line).
+gml_shape_(element('gml:interior',_,[Dom]), Shape) :- !,
+  gml_shape_(Dom, Shape).
+gml_shape_(element('gml:LinearRing',_,[Dom]), 'LineString'(Line)) :- !,
+  gml_shape_(Dom, Line).
+gml_shape_(element('gml:MultiPolygon',_,Dom), 'MultiPolygon'(Polygons)) :- !,
+  maplist(gml_shape_, Dom, Polygons).
+gml_shape_(element('gml:MultiSurface',_,Dom), 'MultiSurface'(Surfaces)) :- !,
+  maplist(gml_shape_, Dom, Surfaces).
+gml_shape_(element('gml:outerBoundaryIs',_, [Dom]), Line) :- !,
+  gml_shape_(Dom, Line).
+gml_shape_(element('gml:Polygon',_,Dom), 'Polygon'(Lines)) :- !,
   % Outer boundary and -- possibly -- inner boundary.
-  maplist(gml_shape, Dom, Lines).
-gml_shape(element('gml:polygonMember',_,[Dom]), Polygon) :- !,
-  gml_shape(Dom, Polygon).
-gml_shape(element('gml:posList',_,[Coords]), Line) :- !,
+  maplist(gml_shape_, Dom, Lines).
+gml_shape_(element('gml:polygonMember',_,[Dom]), Polygon) :- !,
+  gml_shape_(Dom, Polygon).
+gml_shape_(element('gml:posList',_,[Coords]), Line) :- !,
   atom_phrase(gml_poslist(Line), Coords).
-gml_shape(element('gml:surfaceMember',_,[Dom]), Surface) :-
-  gml_shape(Dom, Surface).
+gml_shape_(element('gml:surfaceMember',_,[Dom]), Surface) :-
+  gml_shape_(Dom, Surface).
 
 gml_coords(['Point'([X,Y])|T]) -->
   number(X), !,

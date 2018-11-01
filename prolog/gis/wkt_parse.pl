@@ -1,8 +1,7 @@
 :- module(
   wkt_parse,
   [
-    wkt_parse//1, % -Shape:compound
-    wkt_parse//4  % -Z:boolean, -LRS:boolean, -Crs:atom, -Shape:compound
+    wkt_parse//1 % -Shape:compound
   ]
 ).
 
@@ -23,13 +22,8 @@
 
 
 %! wkt_parse(-Shape:compound)// is det.
-%! wkt_parse(-Z:boolean, -LRS:boolean, -Crs:atom, -Shape:compound)// is det.
 
-wkt_parse(Shape) -->
-  wkt_parse(_, _, _, Shape).
-
-
-wkt_parse(Z, LRS, Crs, Shape) -->
+wkt_parse(shape(Z,LRS,Crs,Shape)) -->
   (   "<",
       ...(Codes),
       ">"

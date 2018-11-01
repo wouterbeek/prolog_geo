@@ -126,10 +126,10 @@ wkt_overlaps(Wkt1, Wkt2) :-
 %! wkt_shape_atom(+Shape:compound, -Atom:atom)
 
 wkt_shape_atom(Shape, Atom) :-
-  ground(Shape), !,
+  nonvar(Shape), !,
   atom_phrase(wkt_generate(Shape), Atom).
 wkt_shape_atom(Shape, Atom) :-
-  ground(Atom), !,
+  nonvar(Atom), !,
   atom_phrase(wkt_parse(Shape), Atom).
 wkt_shape_atom(Shape, Atom) :-
   instantiation_error(args([Shape,Atom])).

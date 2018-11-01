@@ -33,20 +33,20 @@
 
 %! gis_area(+Shape:compound, -Area:float) is det.
 
-gis_area('Line'(_), 0.0) :- !.
-gis_area('MultiLine'(_), 0.0) :- !.
-gis_area('MultiPoint'(_), 0.0) :- !.
-gis_area('MultiPolygon'(Polygons), Area) :- !,
-  maplist(polygon_area, Polygons, Areas),
+gis_area(shape(_,_,_,'Line'(_)), 0.0) :- !.
+gis_area(shape(_,_,_,'MultiLine'(_)), 0.0) :- !.
+gis_area(shape(_,_,_,'MultiPoint'(_)), 0.0) :- !.
+gis_area(shape(_,_,_,'MultiPolygon'(Polygons)), Area) :- !,
+  maplist(polygon_area_, Polygons, Areas),
   sum_list(Areas, Area).
-gis_area('Point'(_), 0.0) :- !.
-gis_area('Polygon'(LineStrings), Area) :-
-  polygon_area(LineStrings, Area).
+gis_area(shape(_,_,_,'Point'(_)), 0.0) :- !.
+gis_area(shape(_,_,_,'Polygon'(LineStrings)), Area) :-
+  polygon_area_(LineStrings, Area).
 
-polygon_area([LineString], Area) :- !,
+polygon_area_([LineString], Area) :- !,
   polygon_area_(LineString, 0.0, Area).
-polygon_area([LineString1,LineString2], Area) :-
-  maplist(polygon_area, [LineString1,LineString2], [Area1,Area2]),
+polygon_area_([LineString1,LineString2], Area) :-
+  maplist(polygon_area_, [LineString1,LineString2], [Area1,Area2]),
   Area is abs(Area1 - Area2).
 
 polygon_area_([[X1,Y1|_],[X2,Y2|T2]|Coords], Sum1, Area) :- !,
@@ -59,79 +59,79 @@ polygon_area_(_, Sum, Area) :-
 
 %! gis_is_shape(@Term) is semidet.
 
-gis_is_shape(Term) :-
-  gis_shape_type(Term, _).
+gis_is_shape(Shape) :-
+  gis_shape_type(Shape, _).
 
 
 
 %! gis_max(+Shape:compound, -Maximums:list(float)) is det.
 
-gis_max(Shape, Maxs) :-
-  gis_shape_dimension(Shape, Dim),
-  gis_max_(Dim, Shape, Maxs).
+gis_max(shape(_,_,_,Term), Maxs) :-
+  gis_shape_dimension_(Term, Dim),
+  gis_max_(Dim, Term, Maxs).
 
-gis_max_(2, Shape, [X,Y]) :-
-  gis_max_2(Shape, X, Y).
-gis_max_(3, Shape, [X,Y,Z]) :-
-  gis_max_3(Shape, X, Y, Z).
-gis_max_(4, Shape, [X,Y,Z,LRS]) :-
-  gis_max_4(Shape, X, Y, Z, LRS).
+gis_max_(2, Term, [X,Y]) :- !,
+  gis_max_2(Term, X, Y).
+gis_max_(3, Term, [X,Y,Z]) :- !,
+  gis_max_3(Term, X, Y, Z).
+gis_max_(4, Term, [X,Y,Z,LRS]) :-
+  gis_max_4(Term, X, Y, Z, LRS).
 
 gis_max_2('Point'([X,Y]), X, Y) :- !.
-gis_max_2(Shape, X, Y) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_max_2, Shapes, Xs, Ys),
+gis_max_2(Term, X, Y) :-
+  Term =.. [Type,Terms],
+  call_must_be(gis_type, Type),
+  maplist(gis_max_2, Terms, Xs, Ys),
   maplist(max_list, [Xs,Ys], [X,Y]).
 
 gis_max_3('Point'([X,Y,Z]), X, Y, Z) :- !.
-gis_max_3(Shape, X, Y, Z) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_max_3, Shapes, Xs, Ys, Zs),
+gis_max_3(Term, X, Y, Z) :-
+  Term =.. [Type,Terms],
+  call_must_be(gis_type, Type),
+  maplist(gis_max_3, Terms, Xs, Ys, Zs),
   maplist(max_list, [Xs,Ys,Zs], [X,Y,Z]).
 
 gis_max_4('Point'([X,Y,Z,LRS]), X, Y, Z, LRS) :- !.
-gis_max_4(Shape, X, Y, Z, LRS) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_max_4, Shapes, Xs, Ys, Zs, LRSs),
+gis_max_4(Term, X, Y, Z, LRS) :-
+  Term =.. [Type,Terms],
+  call_must_be(gis_type, Type),
+  maplist(gis_max_4, Terms, Xs, Ys, Zs, LRSs),
   maplist(max_list, [Xs,Ys,Zs,LRSs], [X,Y,Z,LRS]).
 
 
 
 %! gis_min(+Shape:compound, -Minimums:list(float)) is det.
 
-gis_min(Shape, Mins) :-
-  gis_shape_dimension(Shape, Dim),
-  gis_min_(Dim, Shape, Mins).
+gis_min(shape(_,_,_,Term), Mins) :-
+  gis_shape_dimension_(Term, Dim),
+  gis_min_(Dim, Term, Mins).
 
-gis_min_(2, Shape, [X,Y]) :-
-  gis_min_2(Shape, X, Y).
-gis_min_(3, Shape, [X,Y,Z]) :-
-  gis_min_3(Shape, X, Y, Z).
-gis_min_(4, Shape, [X,Y,Z,LRS]) :-
-  gis_min_4(Shape, X, Y, Z, LRS).
+gis_min_(2, Term, [X,Y]) :-
+  gis_min_2(Term, X, Y).
+gis_min_(3, Term, [X,Y,Z]) :-
+  gis_min_3(Term, X, Y, Z).
+gis_min_(4, Term, [X,Y,Z,LRS]) :-
+  gis_min_4(Term, X, Y, Z, LRS).
 
 gis_min_2('Point'([X,Y]), X, Y) :- !.
-gis_min_2(Shape, X, Y) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_min_2, Shapes, Xs, Ys),
+gis_min_2(Term, X, Y) :-
+  Term =.. [Type,Terms],
+  call_must_be(gis_type, Type),
+  maplist(gis_min_2, Terms, Xs, Ys),
   maplist(min_list, [Xs,Ys], [X,Y]).
 
 gis_min_3('Point'([X,Y,Z]), X, Y, Z) :- !.
-gis_min_3(Shape, X, Y, Z) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_min_3, Shapes, Xs, Ys, Zs),
+gis_min_3(Term, X, Y, Z) :-
+  Term =.. [Type,Terms],
+  call_must_be(gis_type, Type),
+  maplist(gis_min_3, Terms, Xs, Ys, Zs),
   maplist(min_list, [Xs,Ys,Zs], [X,Y,Z]).
 
 gis_min_4('Point'([X,Y,Z,LRS]), X, Y, Z, LRS) :- !.
-gis_min_4(Shape, X, Y, Z, LRS) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_min_4, Shapes, Xs, Ys, Zs, LRSs),
+gis_min_4(Term, X, Y, Z, LRS) :-
+  Term =.. [Type,Terms],
+  call_must_be(gis_type, Type),
+  maplist(gis_min_4, Terms, Xs, Ys, Zs, LRSs),
   maplist(min_list, [Xs,Ys,Zs,LRSs], [X,Y,Z,LRS]).
 
 
@@ -148,23 +148,26 @@ gis_property__(geos_version(_)).
 
 %! gis_shape_dimension(+Shape:compound, -Dimension:positive_integer) is det.
 
-gis_shape_dimension('Point'([_]), 1) :- !.
-gis_shape_dimension('Point'([_,_]), 2) :- !.
-gis_shape_dimension('Point'([_,_,_]), 3) :- !.
-gis_shape_dimension('Point'([_,_,_,_]), 4) :- !.
-gis_shape_dimension(Shape, Dim) :-
-  Shape =.. [Type,Shapes],
-  gis_type_check(Type),
-  maplist(gis_shape_dimension, Shapes, [Dim|Dims]),
+gis_shape_dimension(shape(_,_,_,Term), Dim) :-
+  gis_shape_dimension_(Term, Dim).
+
+gis_shape_dimension_('Point'([_]), 1) :- !.
+gis_shape_dimension_('Point'([_,_]), 2) :- !.
+gis_shape_dimension_('Point'([_,_,_]), 3) :- !.
+gis_shape_dimension_('Point'([_,_,_,_]), 4) :- !.
+gis_shape_dimension_(Term, Dim) :-
+  Term =.. [Type,Shapes],
+  call_must_be(gis_type, Type),
+  maplist(gis_shape_dimension_, Shapes, [Dim|Dims]),
   (maplist(=(Dim), Dims) -> true ; type_error(gis_dimensions,[Dim|Dims])).
 
 
 
 %! gis_shape_type(+Shape:compound, -Type:atom) is det.
 
-gis_shape_type(Shape, Type) :-
-  Shape =.. [Type,_],
-  gis_type_check(Type).
+gis_shape_type(shape(_,_,_,Term), Type) :-
+  Term =.. [Type,_],
+  gis_type(Type).
 
 
 
@@ -186,14 +189,3 @@ gis_type('Polygon').
 gis_type('PolyhedralSurface').
 gis_type('TIN').
 gis_type('Triangle').
-
-
-
-
-
-% HELPERS %
-
-gis_type_check(Type) :-
-  gis_type(Type), !.
-gis_type_check(Type) :-
-  existence_error(gis_type, Type).

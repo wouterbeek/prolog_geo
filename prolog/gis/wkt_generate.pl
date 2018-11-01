@@ -1,18 +1,20 @@
 :- module(
   wkt_generate,
   [
-    wkt_generate//1, % +Shape:compound
-    wkt_generate//4  % +Z:boolean, +LRS:boolean, +Crs:atom, +Shape:compound
+    wkt_generate//1 % +Shape:compound
   ]
 ).
 
 /** <module> Well-Known Text (WKT): Generator
 
-@version 2016/11, 2017/02-2017/05, 2017/11
+@author Wouter Beek
+@version 2016-2018
 */
 
-:- use_module(library(dcg)).
 :- use_module(library(error)).
+
+:- use_module(library(dcg)).
+:- use_module(library(default)).
 
 :- meta_predicate
     'wkt+'(3, -, ?, ?),
@@ -343,22 +345,18 @@ triangle_text_representation(Z, LRS, Triangle) -->
 
 
 %! wkt_generate(+Shape:compound)// is det.
-%! wkt_generate(+Z:boolean, +LRS:boolean, +Crs:atom, +Shape:compound)// is det.
 
-wkt_generate(Shape) -->
-  wkt_generate(
-    false,
-    false,
-    'http://www.opengis.net/def/crs/OGC/1.3/CRS84',
-    Shape
-  ).
-
-wkt_generate(Z, LRS, Crs, Shape) -->
-  (   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
-  ->  ""
-  ;   "<", atom(Crs), "> "
-  ),
+wkt_generate(shape(Z,LRS,Crs,Shape)) -->
+  {
+    default_value(Z, false),
+    default_value(LRS, false),
+    default_value(Crs, 'http://www.opengis.net/def/crs/OGC/1.3/CRS84')
+  },
+  crs(Crs),
   wkt_representation(Z, LRS, Shape).
+
+crs('http://www.opengis.net/def/crs/OGC/1.3/CRS84') --> !, "".
+crs(Crs) --> "<", atom(Crs), "> ".
 
 wkt_representation(Z, LRS, Point) -->
   point_text_representation(Z, LRS, Point), !.
