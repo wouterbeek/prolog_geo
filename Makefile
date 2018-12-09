@@ -1,29 +1,29 @@
 # -*- Makefile -*-
 
-cc=g++
-CFLAGS+=-std=c++17 -g -Wall -Wextra `geos-config --cflags`
-ld=g++
+CXXFLAGS+=-g --std=c++17 -Wall -Wextra `geos-config --cflags`
+LD=g++
 LDSOFLAGS+=`geos-config --ldflags`
-libs=-lgeos_c -lspatialindex
-obj=$(src:.cpp=.o)
-rm=rm -f
-sobj=$(PACKSODIR)/gis.$(SOEXT)
-src=$(wildcard cpp/*.cpp)
+LIB=-lgeos_c
+OBJ=$(SRC:.cpp=.o)
+SOBJ=$(PACKSODIR)/geo.$(SOEXT)
+SRC=$(wildcard cpp/*.cpp)
 
-all: $(sobj)
+.PHONY: check clean distclean install
 
-$(sobj): $(obj)
+all: $(SOBJ)
+
+$(SOBJ): $(OBJ)
 	mkdir -p $(PACKSODIR)
-	$(ld) $(ARCH) $(LDSOFLAGS) -o $@ $^ $(libs) $(SWISOLIB)
+	$(LD) $(ARCH) $(LDSOFLAGS) -o $@ $^ $(LIB) $(SWISOLIB)
 
 cpp/%.o: cpp/%.cpp
-	$(cc) $(ARCH) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(ARCH) $(CFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 check:
 clean:
-	$(rm) $(obj)
+	$(RM) $(OBJ)
 
 distclean:
-	$(rm) $(sobj)
+	$(RM) $(SOBJ)
 
 install:

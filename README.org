@@ -1,13 +1,26 @@
-#+TITLE: Pro-GIS: Prolog-based GIS library (wrapper around GEOS)
+#+TITLE: ~prolog_geo~: Geospatial library for SWI-Prolog.
 #+AUTHOR: Wouter Beek
 
-* Dependencies
-** libgeos
-*** Fedora
+* Installation
+
+  1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
+  2. Install [[https://github.com/wouterbeek.com/Prolog-Library-Collection][Prolog-Library-Collection]].
+  3. Install the GEOS library:
+
+     - ~sudo apt install libgeos~ on Debian-based distro's (e.g., Ubuntu).
+     - ~sudo dnf install geos geos-devel~ on Red Hat-based distro's
+       (e.g., Fedora).
+
+  4. Clone this library: ~git clone https://github.com/wouterbeek/prolog_geo~
+  5. Compile the C++ sources:
+
 #+BEGIN_SRC sh
-$ sudo dnf install geos geos-devel
+$ swipl -s make.pl -g make -t halt
 #+END_SRC
-*** Ubuntu
-#+BEGIN_SRC sh
-$ sudo apt install libgeos
+
+  6. Add the following lines to your ~.swiplrc~ file:
+
+#+BEGIN_SRC prolog
+user:file_search_path(foreign, '/your/path/to/prolog_geo/lib/x86_64-linux').
+user:file_search_path(library, '/your/path/to/prolog_geo/prolog').
 #+END_SRC

@@ -27,13 +27,14 @@
 @version 2017-2018
 */
 
-:- use_module(library(dcg)).
 :- use_module(library(error)).
-:- use_module(library(gis/wkt_generate)).
-:- use_module(library(gis/wkt_parse)).
 :- use_module(library(shlib)).
 
-:- use_foreign_library(foreign(gis)).
+:- use_module(library(dcg)).
+:- use_module(library(geo/wkt_generate)).
+:- use_module(library(geo/wkt_parse)).
+
+:- use_foreign_library(foreign(geo)).
 
 
 
