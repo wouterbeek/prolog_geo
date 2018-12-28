@@ -20,13 +20,13 @@
 
 5. Compile the C++ sources:
 
-#+BEGIN_SRC sh
-swipl -s make.pl -g make -t halt
-#+END_SRC
+   #+BEGIN_SRC sh
+   swipl -s make.pl -g make -t halt
+   #+END_SRC
 
 6. Add the following lines to your ~.swiplrc~ file:
 
-#+BEGIN_SRC prolog
-user:file_search_path(foreign, '/your/path/to/prolog_geo/lib/x86_64-linux').
-user:file_search_path(library, '/your/path/to/prolog_geo/prolog').
-#+END_SRC
+   #+BEGIN_SRC prolog
+   user:file_search_path(foreign, '/your/path/to/prolog_geo/lib/x86_64-linux').
+   user:file_search_path(library, '/your/path/to/prolog_geo/prolog').
+   #+END_SRC
