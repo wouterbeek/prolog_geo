@@ -3,27 +3,30 @@
 
 * Installation
 
-  1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
+1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
 
-  2. Install [[https://github.com/wouterbeek.com/Prolog-Library-Collection][Prolog-Library-Collection]].
+2. Install [[https://github.com/wouterbeek.com/Prolog-Library-Collection][Prolog-Library-Collection]].
 
-  3. Install the GEOS library:
+3. Install the GEOS library:
 
-     - ~sudo apt install libgeos~ on Debian-based distro's (e.g., Ubuntu).
-     - ~sudo dnf install geos geos-devel~ on Red Hat-based distro's
-       (e.g., Fedora).
+   - ~sudo apt install libgeos~ on Debian-based distro's (e.g.,
+     Ubuntu).
 
-  4. Clone this library: ~git clone https://github.com/wouterbeek/prolog_geo~
+   - ~sudo dnf install geos geos-devel~ on Red Hat-based distro's
+     (e.g., Fedora).
 
-  5. Compile the C++ sources:
+4. Clone this library: ~git clone
+   https://github.com/wouterbeek/prolog_geo~.
 
-  #+BEGIN_SRC sh
-  $ swipl -s make.pl -g make -t halt
-  #+END_SRC
+5. Compile the C++ sources:
 
-  6. Add the following lines to your ~.swiplrc~ file:
+#+BEGIN_SRC sh
+swipl -s make.pl -g make -t halt
+#+END_SRC
 
-  #+BEGIN_SRC prolog
-  user:file_search_path(foreign, '/your/path/to/prolog_geo/lib/x86_64-linux').
-  user:file_search_path(library, '/your/path/to/prolog_geo/prolog').
-  #+END_SRC
+6. Add the following lines to your ~.swiplrc~ file:
+
+#+BEGIN_SRC prolog
+user:file_search_path(foreign, '/your/path/to/prolog_geo/lib/x86_64-linux').
+user:file_search_path(library, '/your/path/to/prolog_geo/prolog').
+#+END_SRC
