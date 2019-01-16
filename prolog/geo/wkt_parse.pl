@@ -340,12 +340,12 @@ tin_text_representation(Z, LRS, Tin) -->
 
 % Triangle
 
-triangle_text(Z, LRS, 'Triangle'(Content)) -->
+triangle_text(Z, LRS, 'Triangle'(LineStrings)) -->
   (   "("
   ->  linestring_text(Z, LRS, LineString),
-      {Content = [LineString]},
+      {LineStrings = [LineString]},
       must_see_code(0'))
-  ;   empty(Content)
+  ;   empty(LineStrings)
   ).
 
 triangle_text_body(Z, LRS, Triangle) -->
@@ -435,7 +435,7 @@ point(false, true, 'Point'([X,Y,LRS])) --> !,
   'Y'(Y),
   must_see_code(0' ),
   blanks,
-  'm'(LRS),
+  m(LRS),
   blanks.
 point(false, false, 'Point'([X,Y])) -->
   'X'(X),
