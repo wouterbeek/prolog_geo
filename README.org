@@ -15,8 +15,11 @@
    - ~sudo dnf install geos geos-devel~ on Red Hat-based distro's
      (e.g., Fedora).
 
-4. Clone this library: ~git clone
-   https://github.com/wouterbeek/prolog_geo~.
+4. Clone this library:
+
+   #+begin_src sh
+   git clone https://github.com/wouterbeek/prolog_geo
+   #+end_src
 
 5. Compile the C++ sources:
 
