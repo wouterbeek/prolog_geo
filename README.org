@@ -9,7 +9,7 @@
 
 3. Install the GEOS library:
 
-   - ~sudo apt install libgeos~ on Debian-based distro's (e.g.,
+   - ~sudo apt install libgeos-dev~ on Debian-based distro's (e.g.,
      Ubuntu).
 
    - ~sudo dnf install geos geos-devel~ on Red Hat-based distro's
@@ -18,7 +18,7 @@
 4. Clone this library:
 
    #+begin_src sh
-   git clone https://github.com/wouterbeek/prolog_geo
+   git clone git@github.com:wouterbeek/prolog_geo.git
    #+end_src
 
 5. Compile the C++ sources:
