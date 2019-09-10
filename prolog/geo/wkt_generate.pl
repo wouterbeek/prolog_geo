@@ -247,7 +247,7 @@ point_text_representation(Z, LRS, Point) -->
 
 % Polygon
 
-polygon_text(_, _, 'Ploygon'([])) --> !,
+polygon_text(_, _, 'Polygon'([])) --> !,
   "Empty".
 polygon_text(Z, LRS, 'Polygon'(LineStrings)) -->
   "(",
