@@ -1,7 +1,7 @@
-:- use_module(library(geo/geo)).
+:- use_module(library(geo/wkt)).
 
 test(Wkt) :-
-  geo_union(
+  wkt_union(
     'Polygon((\c
        51.8622383341678 3.190847055031,   51.9264073767511 3.17634603939213,\c
        51.9439080037163 3.3030218335942,  51.9830760341423 3.59004255199478,\c
