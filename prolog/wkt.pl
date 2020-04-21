@@ -21,18 +21,17 @@
   ]
 ).
 
-/** <module> Well-Known Text (WKT)
+/** <module> Well-Known Text (WKT) support
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(error)).
 :- use_module(library(shlib)).
 
 :- use_module(library(dcg)).
-:- use_module(library(geo/wkt_generate)).
-:- use_module(library(geo/wkt_parse)).
+
+:- use_module(wkt_generate).
+:- use_module(wkt_parse).
 
 :- use_foreign_library(foreign(geo)).
 

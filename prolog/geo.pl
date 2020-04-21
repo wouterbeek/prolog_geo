@@ -12,10 +12,8 @@
   ]
 ).
 
-/** <module> Geospatial library
+/** <module> Geospatial predicates
 
-@author Wouter Beek
-@version 2018
 */
 
 :- use_module(library(apply)).

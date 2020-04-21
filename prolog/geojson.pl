@@ -5,10 +5,8 @@
   ]
 ).
 
-/** <module> GeoJSON
+/** <module> GeoJSON support
 
-@author Wouter Beek
-@version 2018
 */
 
 :- use_module(library(apply)).

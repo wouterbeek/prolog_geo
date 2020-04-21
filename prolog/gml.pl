@@ -5,10 +5,8 @@
   ]
 ).
 
-/** <module> GML
+/** <module> GML support
 
-@author Wouter Beek
-@version 2017/02-2017/04
 */
 
 :- use_module(library(apply)).
