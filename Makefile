@@ -20,6 +20,8 @@ cpp/%.o: cpp/%.cpp
 	$(CXX) $(ARCH) $(CFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 check:
+	${SWIPL} -s test/test_geo.pl -g run_tests -t halt
+
 clean:
 	$(RM) $(OBJ)
 

@@ -1,6 +1,10 @@
+:- use_module(library(plunit)).
+
 :- use_module(library(wkt)).
 
-test(Wkt) :-
+:- begin_tests(geo).
+
+test(wkt_union) :-
   wkt_union(
     'Polygon((\c
        51.8622383341678 3.190847055031,   51.9264073767511 3.17634603939213,\c
@@ -16,4 +20,7 @@ test(Wkt) :-
        52.0969134612883 3.85006149283663, 52.083246342296 3.75388786172814\c
      ))',
     Wkt
-  ).
+  ),
+  writeln(Wkt).
+
+:- end_tests(geo).

@@ -1,0 +1,3 @@
+*.o
+buildenv.sh
+lib
