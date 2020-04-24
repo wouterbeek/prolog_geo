@@ -1,4 +1,4 @@
-:- use_module(library(geo/wkt)).
+:- use_module(library(wkt)).
 
 test(Wkt) :-
   wkt_union(

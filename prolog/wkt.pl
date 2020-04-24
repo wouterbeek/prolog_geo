@@ -29,9 +29,8 @@
 :- use_module(library(shlib)).
 
 :- use_module(library(dcg)).
-
-:- use_module(wkt_generate).
-:- use_module(wkt_parse).
+:- use_module(library(wkt_generate)).
+:- use_module(library(wkt_parse)).
 
 :- use_foreign_library(foreign(geo)).
 
