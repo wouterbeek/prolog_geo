@@ -26,6 +26,6 @@ clean:
 	$(RM) $(OBJ)
 
 distclean:
-	$(RM) $(SOBJ)
+	$(RM) $(OBJ) $(SOBJ)
 
 install:
