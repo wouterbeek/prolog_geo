@@ -2,7 +2,9 @@
 
 ## Dependencies
 
-The GEOS library must be installed system-wide:
+  1. Install [SWI-Prolog](https://www.swi-prolog.org).
+
+  2. Install the GEOS library:
 
 ```sh
 apt install libgeos-dev     # Debian, Ubuntu
@@ -11,21 +13,21 @@ dnf install geos geos-devel # Fedora, Red Hat
 
 ## Installation
 
-Run the following in [SWI-Prolog](https://www.swi-prolog.org):
+Install this library:
 
-```pl
-pack_install(prolog_geo).
+```sh
+swipl -g 'pack_install(prolog_geo)' -t halt
 ```
 
 ## Use
 
-You can now use this library as follows:
+Once installed, modules from this library are loaded as follows:
 
 ```
 ?- [library(geo)].
 ```
 
-And use its predicates:
+Predicates defined in the loaded modules can now be used:
 
 ```pl
 ?- geo_property(Property).
