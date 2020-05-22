@@ -21,7 +21,7 @@ cpp/%.o: cpp/%.cpp
 all: $(SOBJ)
 
 check:
-	$(SWIPL) -s test/test_geo.pl -g run_tests -t halt
+	LANG=C.UTF-8 $(SWIPL) -s test/test_geo.pl -g run_tests -t halt
 
 clean:
 	$(RM) $(OBJ)
