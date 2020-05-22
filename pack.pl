@@ -6,4 +6,4 @@ name(prolog_geo).
 packager('Wouter Beek', 'wouter@triply.cc').
 requires(prolog_library_collection).
 title('Geospatial support in Prolog').
-version('1.0.3').
+version('1.0.4').

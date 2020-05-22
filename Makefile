@@ -3,6 +3,7 @@
 CXXFLAGS+=-g --std=c++17 -Wall -Wextra `geos-config --cflags`
 LD=g++
 LDSOFLAGS+=`geos-config --ldflags`
+LANG=C.UTF-8
 LIB=-lgeos_c
 OBJ=$(SRC:.cpp=.o)
 SOBJ=$(PACKSODIR)/geo.$(SOEXT)
