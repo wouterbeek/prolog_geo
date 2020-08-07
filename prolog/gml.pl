@@ -17,14 +17,14 @@
 
 
 
-%! gml_shape(+Dom, -Shape) is det.
+%! gml_shape(+Dom:list(compound), -Shape:compound) is det.
 %
 % @tbd set Z
 % @tbd set LRS
 % @tbd set CRS
 
-gml_shape(Dom, shape(_Z,_LRS,_Crs,Shape)) :-
-  gml_shape_(Dom, Shape).
+gml_shape([Element], shape(_Z,_LRS,_Crs,Shape)) :-
+  gml_shape_(Element, Shape).
 
 gml_shape_(element('gml:coordinates',_,[Coords]), Line) :- !,
   atom_phrase(gml_coords(Line), Coords).
