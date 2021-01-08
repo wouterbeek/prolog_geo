@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 
-CXXFLAGS+=-g --std=c++17 -Wall -Wextra `geos-config --cflags`
+CXXFLAGS+=-g --std=c++20 -Wall -Wextra `geos-config --cflags`
 LD=g++
 LDSOFLAGS+=`geos-config --ldflags`
 LIB=-lgeos_c
