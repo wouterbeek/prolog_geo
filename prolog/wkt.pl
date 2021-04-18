@@ -16,6 +16,7 @@
     wkt_shape_atom/2,           % ?Shape, ?Atom
     wkt_symmetric_difference/3, % +Wkt1, +Wkt2, -Difference
     wkt_touches/2,              % +Wkt1, +Wkt2
+    wkt_transform/3,            % +FromWkt, ?ToCrs, ToWkt
     wkt_union/3,                % +Wkt1, +Wkt2, -Wkt3
     wkt_within/2                % +Wkt1, +Wkt2
   ]
@@ -29,12 +30,11 @@
 :- use_module(library(shlib)).
 
 :- use_module(library(dcg)).
+:- use_module(library(geo)).
 :- use_module(library(wkt_generate)).
 :- use_module(library(wkt_parse)).
 
 :- use_foreign_library(foreign(geo)).
-
-
 
 
 
@@ -146,6 +146,17 @@ wkt_symmetric_difference(Wkt1, Wkt2, Difference) :-
 
 wkt_touches(Wkt1, Wkt2) :-
   wkt_touches_(Wkt1, Wkt2).
+
+
+
+%! wkt_transform(+FromWkt:atom, +ToCrs:iri, -ToWkt:shape) is det.
+
+wkt_transform(FromWkt, ToCrs, ToWkt) :-
+  atom_phrase(wkt_parse(FromShape), FromWkt),
+  FromShape = shape(Z,LRS,FromCrs,FromShape0),
+  geo_transform(FromCrs, FromShape0, ToCrs, ToShape0),
+  ToShape = shape(Z,LRS,ToCrs,ToShape0),
+  atom_phrase(wkt_generate(ToShape), ToWkt).
 
 
 

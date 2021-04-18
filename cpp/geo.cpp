@@ -27,56 +27,70 @@ auto parse_geometry(const char* s) -> GEOSGeometry*;
 const GEOSContextHandle_t handle{GEOS_init_r()};
 GEOSWKTWriter* w = GEOSWKTWriter_create_r(handle);
 
-PREDICATE(geo_translate_coord_, 3) {
-  const std::string crs{atom_to_string(A1)};
-  PlTerm from1{A2};
-  PJ_COORD from{proj_coord(from1[1], from1[2], from1[3], 0.0)};
-  PJ_CONTEXT* context = proj_context_create();
-  PJ* const projection0 = proj_create_crs_to_crs(context, crs.c_str(), "EPSG:4326", nullptr);
-  if (projection0 == 0) {
-    //<< proj_context_errno_string(context, proj_errno(projection0))
-    std::cerr << "Unable to project: " << proj_errno(projection0) << '\n';
+class Projection {
+public:
+  Projection(const std::string& fromCrs,
+             const std::string& toCrs)
+    : m_context{proj_context_create()}
+  {
+    PJ* projection = proj_create_crs_to_crs(m_context,
+                                            fromCrs.c_str(),
+                                            toCrs.c_str(),
+                                            nullptr);
+    if (projection == 0) {
+      //<< proj_context_errno_string(m_context, proj_errno(projection))
+      std::cerr << "Unable to project: " << proj_errno(projection) << '\n';
+    }
+    m_projection = proj_normalize_for_visualization(m_context, projection);
+    if (m_projection == 0)  {
+      //<< proj_context_errno_string(m_context, proj_errno(m_projection))
+      std::cerr << "Unable to project: " << proj_errno(m_projection) << '\n';
+    }
+    proj_destroy(projection);
+    //proj_context_errno_string(m_context, proj_context_errno(m_context))
   }
-  PJ* const projection = proj_normalize_for_visualization(context, projection0);
-  if (projection == 0)  {
-    //<< proj_context_errno_string(context, proj_errno(projection))
-    std::cerr << "Unable to project: " << proj_errno(projection) << '\n';
+
+  ~Projection()
+  {
+    proj_destroy(m_projection);
+    proj_context_destroy(m_context);
   }
-  proj_destroy(projection0);
-  //proj_context_errno_string(context, proj_context_errno(context))
-  const PJ_COORD to{proj_trans(projection, PJ_FWD, from)};
-  proj_destroy(projection);
-  proj_context_destroy(context);
-  return{A3 = PlCompound("coord", PlTermv(to.xyz.x, to.xyz.y, to.xyz.z))};
-}
-/*
-  PlTail a(A1);
-  std::vector<double> coords;
-  PlTerm e;
-  for (a.next(e)) {
-    coords.push_back(e);
-    a.next(e);
-    coords.push_back(e);
-    a.next(e);
-    coords.push_back(e);
+
+  [[nodiscard]] inline auto transform(const PlTerm& term) const -> PlCompound
+  {
+    const PJ_COORD from{proj_coord(term[1],
+                                   term[2],
+                                   term.arity() >= 3 ? static_cast<double>(term[3]) : 0.0,
+                                   term.arity() == 4 ? static_cast<double>(term[3]) : 0.0)};
+    const PJ_COORD to{proj_trans(m_projection, PJ_FWD, from)};
+    switch (term.arity()) {
+    case 2:
+      return{PlCompound("coord", PlTermv(to.xyz.x, to.xyz.y))};
+    case 3:
+      return{PlCompound("coord", PlTermv(to.xyz.x, to.xyz.y, to.xyz.z))};
+    default:
+      std::cerr << "No support for this coord arity.\n";
+      std::abort();
+    }
   }
+
+private:
+  PJ_CONTEXT* m_context = nullptr;
+  PJ* m_projection = nullptr;
+};
+
+PREDICATE(geo_transform_coords_, 4) {
+  Projection projection{atom_to_string(A1), atom_to_string(A3)};
+  PlTail froms(A2);
+  PlTerm from;
 	PlTermv av(1);
-	PlTail b(av[0]);
-	for (const auto& coord: coords) {
-		b.append(xs[i]);
+	PlTail tos(av[0]);
+  while (froms.next(from)) {
+    tos.append(projection.transform(from));
 	}
-	b.close();
-	return{static_cast<foreign_t>(A2 = av[0])};
+	tos.close();
+	return{static_cast<foreign_t>(A4 = av[0])};
 }
-  while (a.next(e)) {
-    std::cout << (char*)e << '\n';
-    b.append(e);
-  }
-  b.close();
-  b = A2;
-  PL_succeed;
-}
-*/
 
 // geo_halt_ is det.
 PREDICATE(geo_halt_, 0) {

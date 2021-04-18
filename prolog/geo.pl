@@ -8,7 +8,7 @@
     geo_property/1,        % ?Property
     geo_shape_dimension/2, % +Shape, -Dimension
     geo_shape_type/2,      % +Shape, -Type
-    geo_translate_coord/3, % +Crs, +Coord1, -Coord2
+    geo_transform/4,       % +FromCrs, +FromShape, ?ToCrs, -ToShape
     geo_type/1             % ?Type
   ]
 ).
@@ -21,8 +21,10 @@
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(shlib)).
+:- use_module(library(yall)).
 
 :- use_module(library(call_ext)).
+:- use_module(library(default)).
 
 :- use_foreign_library(foreign(geo)).
 
@@ -168,9 +170,30 @@ geo_shape_type(shape(_,_,_,Term), Type) :-
 
 
 
-geo_translate_coord(Crs, Coord1, Coord2) :-
-  proj_crs_(Crs, Crs0),
-  geo_translate_coord_(Crs0, Coord1, Coord2).
+%! geo_transform(+FromCrs:iri, +FromShape:shape, ?ToCrs:iri, -ToShape:shape) is det.
+
+geo_transform(FromCrs, FromShape, ToCrs, ToShape) :-
+  default_value(ToCrs, 'http://www.opengis.net/def/crs/EPSG/0/4326'),
+  geo_transform_(FromCrs, FromShape, ToCrs, ToShape).
+
+geo_transform_(FromCrs, 'Point'(FromCoord), ToCrs, 'Point'(ToCoord)) :- !,
+  geo_transform_coords(FromCrs, [FromCoord], ToCrs, [ToCoord]).
+geo_transform_(FromCrs, 'LineString'(FromCoords), ToCrs, 'LineString'(ToCoords)) :- !,
+  geo_transform_coords(FromCrs, FromCoords, ToCrs, ToCoords).
+geo_transform_(FromCrs, 'Polygon'(FromLineStrings), ToCrs, 'Polygon'(ToLineStrings)) :- !,
+  maplist(
+    {FromCrs,ToCrs}/[FromLineString0,ToLineString0]>>
+      geo_transform_(FromCrs, FromLineString0, ToCrs, ToLineString0),
+    FromLineStrings,
+    ToLineStrings
+  ).
+geo_transform_(FromCrs, FromShape, ToCrs, ToShape) :-
+  gtrace,%DEB
+  geo_transform_(FromCrs, FromShape, ToCrs, ToShape).
+
+geo_transform_coords(FromCrs, FromCoords, ToCrs, ToCoords) :-
+  maplist(proj_crs_, [FromCrs,ToCrs], [FromCrs0,ToCrs0]),
+  geo_transform_coords_(FromCrs0, FromCoords, ToCrs0, ToCoords).
 
 proj_crs_('http://www.opengis.net/def/crs/EPSG/0/28992', 'EPSG:28992').
 proj_crs_('http://www.opengis.net/def/crs/EPSG/0/4326', 'EPSG:4326').

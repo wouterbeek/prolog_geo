@@ -13,13 +13,8 @@ shape(Z:boolean, LRS:boolean, Crs:iri, Shape:compound)
 
 */
 
+:- use_module(library(abnf)).
 :- use_module(library(dcg)).
-
-:- meta_predicate
-    'wkt+'(3, -, ?, ?),
-    'wkt*'(3, -, ?, ?).
-
-
 
 
 
@@ -44,11 +39,11 @@ wkt_parse(shape(Z,LRS,Crs,Shape)) -->
 
 % CircularString
 
-circularstring_text(Z, LRS, 'CircularString'(Points)) -->
+circularstring_text(Z, LRS, 'CircularString'(Coords)) -->
   (   "("
-  ->  'wkt+'(point(Z, LRS), Points),
+  ->  '+&!'(coord(Z, LRS), ",", Coords),
       must_see_code(0'))
-  ;   empty(Points)
+  ;   empty(Coords)
   ).
 
 circularstring_text_representation(Z, LRS, CircularString) -->
@@ -73,7 +68,7 @@ collection_text_representation(Z, LRS, GeometryCollection) -->
 
 compoundcurve_text(Z, LRS, 'CompoundCurve'(Curves)) -->
   (   "("
-  ->  'wkt+'(single_curve_text(Z, LRS), Curves),
+  ->  '+&!'(single_curve_text(Z, LRS), ",", Curves),
       must_see_code(0'))
   ;   empty(Curves)
   ).
@@ -106,7 +101,7 @@ curve_text_representation(Z, LRS, CompoundCurve) -->
 
 curvepolygon_text(Z, LRS, 'CurvePolygon'(Rings)) -->
   (   "("
-  ->  'wkt+'(ring_text(Z, LRS), Rings),
+  ->  '+&!'(ring_text(Z, LRS), ",", Rings),
       must_see_code(0'))
   ;   empty(Rings)
   ).
@@ -129,7 +124,7 @@ curvepolygon_text_representation(Z, LRS, Triangle) -->
 
 geometrycollection_text(Z, LRS, 'GeometryCollection'(Shapes)) -->
   (   "("
-  ->  'wkt+'(wkt_representation(Z, LRS), Shapes),
+  ->  '+&!'(wkt_representation(Z, LRS), ",", Shapes),
       must_see_code(0'))
   ;   empty(Shapes)
   ).
@@ -143,11 +138,11 @@ geometrycollection_text_representation(Z, LRS, GeometryCollection) -->
 
 % LineString
 
-linestring_text(Z, LRS, 'LineString'(Points)) -->
+linestring_text(Z, LRS, 'LineString'(Coords)) -->
   (   "("
-  ->  'wkt+'(point(Z, LRS), Points),
+  ->  '+&!'(coord(Z, LRS), ",", Coords),
       must_see_code(0'))
-  ;   empty(Points)
+  ;   empty(Coords)
   ).
 
 linestring_text_body(Z, LRS, LineString) -->
@@ -164,7 +159,7 @@ linestring_text_representation(Z, LRS, LineString) -->
 
 multicurve_text(Z, LRS, 'MultiCurve'(Curves)) -->
   (   "("
-  ->  'wkt+'(curve_text(Z, LRS), Curves),
+  ->  '+&!'(curve_text(Z, LRS), ",", Curves),
       must_see_code(0'))
   ;   empty(Curves)
   ).
@@ -182,7 +177,7 @@ multicurve_text_representation(Z, LRS, MultiLineString) -->
 
 multilinestring_text(Z, LRS, 'MultiLineString'(LineStrings)) -->
   (   "("
-  ->  'wkt+'(linestring_text_body(Z, LRS), LineStrings),
+  ->  '+&!'(linestring_text_body(Z, LRS), ",", LineStrings),
       must_see_code(0'))
   ;   empty(LineStrings)
   ).
@@ -196,11 +191,11 @@ multilinestring_text_representation(Z, LRS, MultiLineString) -->
 
 % MultiPoint
 
-multipoint_text(Z, LRS, 'MultiPoint'(Points)) -->
+multipoint_text(Z, LRS, 'MultiPoint'(Coords)) -->
   (   "("
-  ->  'wkt+'(point_text(Z, LRS), Points),
+  ->  '+&!'(point_text(Z, LRS), ",", Coords),
       must_see_code(0'))
-  ;   empty(Points)
+  ;   empty(Coords)
   ).
 
 multipoint_text_representation(Z, LRS, MultiPoint) -->
@@ -214,7 +209,7 @@ multipoint_text_representation(Z, LRS, MultiPoint) -->
 
 multipolygon_text(Z, LRS, 'MultiPolygon'(Polygons)) -->
   (   "("
-  ->  'wkt+'(polygon_text_body(Z, LRS), Polygons),
+  ->  '+&!'(polygon_text_body(Z, LRS), ",", Polygons),
       must_see_code(0'))
   ;   empty(Polygons)
   ).
@@ -230,7 +225,7 @@ multipolygon_text_representation(Z, LRS, MultiPolygon) -->
 
 multisurface_text(Z, LRS, 'MultiSurface'(Surfaces)) -->
   (   "("
-  ->  'wkt+'(surface_text(Z, LRS), Surfaces),
+  ->  '+&!'(surface_text(Z, LRS), ",", Surfaces),
       must_see_code(0'))
   ;   empty(Surfaces)
   ).
@@ -250,15 +245,15 @@ multisurface_text_representation(Z, LRS, Tin) -->
 
 % Point
 
-point_text(Z, LRS, Point) -->
+point_text(Z, LRS, Coord) -->
   "(",
-  point(Z, LRS, Point),
+  coord(Z, LRS, Coord),
   must_see_code(0')).
 
-point_text_representation(Z, LRS, Point) -->
+point_text_representation(Z, LRS, 'Point'(Coord)) -->
   keyword(`point`),
   z_m(Z, LRS),
-  point_text(Z, LRS, Point).
+  point_text(Z, LRS, Coord).
 
 
 
@@ -266,7 +261,7 @@ point_text_representation(Z, LRS, Point) -->
 
 polygon_text(Z, LRS, 'Polygon'(LineStrings)) -->
   (   "("
-  ->  'wkt+'(linestring_text(Z, LRS), LineStrings),
+  ->  '+&!'(linestring_text(Z, LRS), ",", LineStrings),
       must_see_code(0'))
   ;   empty(LineStrings)
   ).
@@ -285,7 +280,7 @@ polygon_text_representation(Z, LRS, Polygon) -->
 
 polyhedralsurface_text(Z, LRS, 'PolyhedralSurface'(Polygons)) -->
   (   "("
-  ->  'wkt+'(polygon_text_body(Z, LRS), Polygons),
+  ->  '+&!'(polygon_text_body(Z, LRS), ",", Polygons),
       must_see_code(0'))
   ;   empty(Polygons)
   ).
@@ -328,7 +323,7 @@ surface_text_representation(Z, LRS, CurvePolygon) -->
 
 tin_text(Z, LRS, 'TIN'(Triangles)) -->
   (   "("
-  ->  'wkt+'(triangle_text_body(Z, LRS), Triangles),
+  ->  '+&!'(triangle_text_body(Z, LRS), ",", Triangles),
       must_see_code(0'))
   ;   empty(Triangles)
   ).
@@ -375,6 +370,31 @@ wkt_representation(Z, LRS, Collection) -->
 
 % HELPERS %
 
+%! coord(+Z:boolean, +LRS:boolean, -Coord:compound)// is det.
+
+coord(true, true, coord(X,Y,Z,LRS)) --> !,
+  coord(true, false, coord(X,Y,Z)),
+  must_see_code(0' ),
+  blanks,
+  m(LRS).
+coord(true, false, coord(X,Y,Z)) --> !,
+  coord(false, false, coord(X,Y)),
+  must_see_code(0' ),
+  blanks,
+  'Z'(Z).
+coord(false, true, coord(X,Y,LRS)) --> !,
+  coord(false, false, coord(X,Y)),
+  must_see_code(0' ),
+  blanks,
+  m(LRS).
+coord(false, false, coord(X,Y)) -->
+  'X'(X),
+  must_see_code(0' ),
+  blanks,
+  'Y'(Y).
+
+
+
 %! empty(-Shapes:list:compound)// .
 
 empty([]) -->
@@ -408,65 +428,6 @@ must_see_code(C) -->
 
 
 
-%! point(+Z:boolean, +LRS:boolean, -Point:compound)// is det.
-
-point(true, true, 'Point'([X,Y,Z,LRS])) --> !,
-  'X'(X),
-  must_see_code(0' ),
-  blanks,
-  'Y'(Y),
-  must_see_code(0' ),
-  blanks,
-  'Z'(Z),
-  must_see_code(0' ),
-  blanks,
-  m(LRS).
-point(true, false, 'Point'([X,Y,Z])) --> !,
-  'X'(X),
-  must_see_code(0' ),
-  blanks,
-  'Y'(Y),
-  must_see_code(0' ),
-  blanks,
-  'Z'(Z),
-  blanks.
-point(false, true, 'Point'([X,Y,LRS])) --> !,
-  'X'(X),
-  must_see_code(0' ),
-  blanks,
-  'Y'(Y),
-  must_see_code(0' ),
-  blanks,
-  m(LRS),
-  blanks.
-point(false, false, 'Point'([X,Y])) -->
-  'X'(X),
-  must_see_code(0' ),
-  blanks,
-  'Y'(Y),
-  blanks.
-
-
-
-%! 'wkt+'(:Dcg_1, -L)// is det.
-
-'wkt+'(Dcg_1, [H|T]) -->
-  dcg_call(Dcg_1, H),
-  'wkt*'(Dcg_1, T).
-
-
-
-%! 'wkt*'(:Dcg_1, -L)// is det.
-
-'wkt*'(Dcg_1, [H|T]) -->
-  ",", !,
-  blanks,
-  dcg_call(Dcg_1, H),
-  'wkt*'(Dcg_1, T).
-'wkt*'(_, []) --> "".
-
-
-
 %! 'X'(-N)// .
 
 'X'(N) -->
@@ -491,5 +452,5 @@ point(false, false, 'Point'([X,Y])) -->
 %! z_m(-Z:boolean, -LRS:boolean)// is det.
 
 z_m(Z, LRS) -->
-  ("Z" -> {Z = true} ; {Z = false}),
-  ("M" -> {LRS = true} ; {LRS = false}).
+  ("Z" -> blanks, {Z = true} ; {Z = false}),
+  ("M" -> blanks, {LRS = true} ; {LRS = false}).
