@@ -1,21 +1,82 @@
-#define PL_ARITY_AS_SIZE 1
+#include <cassert>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#define PL_ARITY_AS_SIZE 1
 #include <SWI-cpp.h>
 #include <SWI-Prolog.h>
 #include <SWI-Stream.h>
 
-// GEOS C API
 #define GEOS_USE_ONLY_R_API
 #include <geos_c.h>
+#include <proj.h>
 
+#define CVT_TEXT (CVT_ATOM|CVT_STRING|CVT_EXCEPTION|REP_UTF8)
+
+static const PlAtom ATOM_epsg_28992{"EPSG:28992"};
+static const PlAtom ATOM_epsg_4326{"EPSG:4326"};
 static const PlAtom ATOM_geos_version{"geos_version"};
 
+[[nodiscard]] auto atom_to_string(term_t t) -> std::string;
 auto parse_geometry(const char* s) -> GEOSGeometry*;
 
 const GEOSContextHandle_t handle{GEOS_init_r()};
 GEOSWKTWriter* w = GEOSWKTWriter_create_r(handle);
+
+PREDICATE(geo_translate_coord_, 3) {
+  const std::string crs{atom_to_string(A1)};
+  PlTerm from1{A2};
+  PJ_COORD from{proj_coord(from1[1], from1[2], from1[3], 0.0)};
+  PJ_CONTEXT* context = proj_context_create();
+  PJ* const projection0 = proj_create_crs_to_crs(context, crs.c_str(), "EPSG:4326", nullptr);
+  if (projection0 == 0) {
+    //<< proj_context_errno_string(context, proj_errno(projection0))
+    std::cerr << "Unable to project: " << proj_errno(projection0) << '\n';
+  }
+  PJ* const projection = proj_normalize_for_visualization(context, projection0);
+  if (projection == 0)  {
+    //<< proj_context_errno_string(context, proj_errno(projection))
+    std::cerr << "Unable to project: " << proj_errno(projection) << '\n';
+  }
+  proj_destroy(projection0);
+  //proj_context_errno_string(context, proj_context_errno(context))
+  const PJ_COORD to{proj_trans(projection, PJ_FWD, from)};
+  proj_destroy(projection);
+  proj_context_destroy(context);
+  return{A3 = PlCompound("coord", PlTermv(to.xyz.x, to.xyz.y, to.xyz.z))};
+}
+/*
+  PlTail a(A1);
+  std::vector<double> coords;
+  PlTerm e;
+  for (a.next(e)) {
+    coords.push_back(e);
+    a.next(e);
+    coords.push_back(e);
+    a.next(e);
+    coords.push_back(e);
+  }
+	PlTermv av(1);
+	PlTail b(av[0]);
+	for (const auto& coord: coords) {
+		b.append(xs[i]);
+	}
+	b.close();
+	return{static_cast<foreign_t>(A2 = av[0])};
+}
+  while (a.next(e)) {
+    std::cout << (char*)e << '\n';
+    b.append(e);
+  }
+  b.close();
+  b = A2;
+  PL_succeed;
+}
+*/
 
 // geo_halt_ is det.
 PREDICATE(geo_halt_, 0) {
@@ -44,7 +105,7 @@ PREDICATE(wkt_boundary_, 2) {
   const GEOSGeometry* g2 = GEOSBoundary_r(handle, g1);
   const char* s2 = GEOSWKTWriter_write_r(handle, w, g2);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A2 = s2;
+  return{static_cast<foreign_t>(A2 = s2)};
 }
 
 // wkt_contains_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -65,7 +126,8 @@ PREDICATE(wkt_contains_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -80,7 +142,7 @@ PREDICATE(wkt_convex_hull_, 2) {
   const GEOSGeometry* g2 = GEOSConvexHull_r(handle, g1);
   const char* s2 = GEOSWKTWriter_write_r(handle, w, g2);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A3 = s2;
+  return{static_cast<foreign_t>(A3 = s2)};
 }
 
 // wkt_crosses_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -101,7 +163,8 @@ PREDICATE(wkt_crosses_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -119,7 +182,7 @@ PREDICATE(wkt_difference_, 3) {
   const GEOSGeometry* g3 = GEOSDifference_r(handle, g1, g2);
   const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A3 = s3;
+  return{static_cast<foreign_t>(A3 = s3)};
 }
 
 // wkt_disjoint_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -140,7 +203,8 @@ PREDICATE(wkt_disjoint_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -158,7 +222,7 @@ PREDICATE(wkt_distance_, 3) {
   const GEOSGeometry* g2 = parse_geometry(s2);
   const int rc{GEOSDistance_r(handle, g1, g2, &dist)};
   if (rc == 1) {
-    return (A3 = dist);
+    return{static_cast<foreign_t>(A3 = dist)};
   } else {
     PL_fail;
   }
@@ -175,7 +239,7 @@ PREDICATE(wkt_envelope_, 2) {
   const GEOSGeometry* g2 = GEOSEnvelope_r(handle, g1);
   const char* s2 = GEOSWKTWriter_write_r(handle, w, g2);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A2 = s2;
+  return{static_cast<foreign_t>(A2 = s2)};
 }
 
 // wkt_equals_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -196,7 +260,8 @@ PREDICATE(wkt_equals_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -214,7 +279,7 @@ PREDICATE(wkt_intersection_, 3) {
   const GEOSGeometry* g3 = GEOSIntersection_r(handle, g1, g2);
   const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A3 = s3;
+  return{static_cast<foreign_t>(A3 = s3)};
 }
 
 // wkt_intersects_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -235,7 +300,8 @@ PREDICATE(wkt_intersects_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -257,7 +323,8 @@ PREDICATE(wkt_overlaps_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -275,7 +342,7 @@ PREDICATE(wkt_symmetric_difference_, 3) {
   const GEOSGeometry* g3 = GEOSSymDifference_r(handle, g1, g2);
   const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A3 = s3;
+  return{static_cast<foreign_t>(A3 = s3)};
 }
 
 // wkt_touches_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -296,7 +363,8 @@ PREDICATE(wkt_touches_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -314,7 +382,7 @@ PREDICATE(wkt_union_, 3) {
   const GEOSGeometry* g3 = GEOSUnion_r(handle, g1, g2);
   const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
   GEOSWKTWriter_destroy_r(handle, w);
-  return A3 = s3;
+  return{static_cast<foreign_t>(A3 = s3)};
 }
 
 // wkt_within_(+Wkt1:atom, +Wkt2:atom) is semidet.
@@ -335,7 +403,8 @@ PREDICATE(wkt_within_, 2) {
   case 1:
     PL_succeed;
   default:
-    return PL_existence_error("geos_status", status);
+    return{static_cast<foreign_t>(PL_existence_error("geos_status",
+                                                     static_cast<term_t>(status)))};
   }
 }
 
@@ -347,8 +416,15 @@ PREDICATE(shape_type_, 2) {
     PL_fail;
   }
   const GEOSGeometry* g = parse_geometry(s);
-  const int rc{(A2 = GEOSGeomType_r(handle, g))};
-  return rc;
+  return{static_cast<foreign_t>(A2 = GEOSGeomType_r(handle, g))};
+}
+
+auto atom_to_string(term_t t) -> std::string
+{
+  std::size_t len{0};
+  char* buffer = nullptr;
+  assert(PL_get_nchars(t, &len, &buffer, CVT_TEXT));
+  return{buffer};
 }
 
 auto parse_geometry(const char* s) -> GEOSGeometry*

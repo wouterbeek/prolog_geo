@@ -7,6 +7,10 @@
 
 /** <module> Well-Known Text (WKT) parser support
 
+```pl
+shape(Z:boolean, LRS:boolean, Crs:iri, Shape:compound)
+```
+
 */
 
 :- use_module(library(dcg)).

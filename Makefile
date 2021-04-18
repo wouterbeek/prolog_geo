@@ -1,14 +1,15 @@
 # -*- Makefile -*-
 
-CXXFLAGS+=-g --std=c++20 -Wall -Wextra `geos-config --cflags`
+CXXFLAGS+=-I/usr/local/include -Wall -Wcast-align -Wconversion -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wextra -Wformat=2 -Wlogical-op -Wmisleading-indentation -Wnon-virtual-dtor -Wnull-dereference -Wold-style-cast -Woverloaded-virtual -Wpedantic -Wshadow -Wsign-conversion -Wunused -Wuseless-cast -fPIC -g -march=native -shared --std=c++20 `geos-config --cflags`
 LD=g++
 LDSOFLAGS+=`geos-config --ldflags`
-LIB=-lgeos_c
+LDSOFLAGS+=-L/usr/local/lib
+LIB=-lgeos_c -lproj
 OBJ=$(SRC:.cpp=.o)
 SOBJ=$(PACKSODIR)/geo.$(SOEXT)
-SRC=$(wildcard cpp/*.cpp)
+SRC=cpp/geo.cpp
 
-.PHONY: check clean distclean install
+.PHONY: all check clean distclean install
 
 $(SOBJ): $(OBJ)
 	mkdir -p $(PACKSODIR)

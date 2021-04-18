@@ -8,6 +8,7 @@
     geo_property/1,        % ?Property
     geo_shape_dimension/2, % +Shape, -Dimension
     geo_shape_type/2,      % +Shape, -Type
+    geo_translate_coord/3, % +Crs, +Coord1, -Coord2
     geo_type/1             % ?Type
   ]
 ).
@@ -24,8 +25,6 @@
 :- use_module(library(call_ext)).
 
 :- use_foreign_library(foreign(geo)).
-
-
 
 
 
@@ -166,6 +165,15 @@ geo_shape_dimension_(Term, Dim) :-
 geo_shape_type(shape(_,_,_,Term), Type) :-
   Term =.. [Type,_],
   geo_type(Type).
+
+
+
+geo_translate_coord(Crs, Coord1, Coord2) :-
+  proj_crs_(Crs, Crs0),
+  geo_translate_coord_(Crs0, Coord1, Coord2).
+
+proj_crs_('http://www.opengis.net/def/crs/EPSG/0/28992', 'EPSG:28992').
+proj_crs_('http://www.opengis.net/def/crs/EPSG/0/4326', 'EPSG:4326').
 
 
 
