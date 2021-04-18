@@ -8,7 +8,7 @@
     geo_property/1,        % ?Property
     geo_shape_dimension/2, % +Shape, -Dimension
     geo_shape_type/2,      % +Shape, -Type
-    geo_transform/4,       % +FromCrs, +FromShape, ?ToCrs, -ToShape
+    geo_transform/2,       % +FromShape, -ToShape
     geo_type/1             % ?Type
   ]
 ).
@@ -170,33 +170,33 @@ geo_shape_type(shape(_,_,_,Term), Type) :-
 
 
 
-%! geo_transform(+FromCrs:iri, +FromShape:shape, ?ToCrs:iri, -ToShape:shape) is det.
+%! geo_transform(+FromShape:shape, ?ToShape:shape) is det.
 
-geo_transform(FromCrs, FromShape, ToCrs, ToShape) :-
+geo_transform(shape(Z,LRS,FromCrs,FromShape), shape(Z,LRS,ToCrs,ToShape)) :-
   default_value(ToCrs, 'http://www.opengis.net/def/crs/EPSG/0/4326'),
-  geo_transform_(FromCrs, FromShape, ToCrs, ToShape).
+  geo_transform(FromCrs, FromShape, ToCrs, ToShape).
 
-geo_transform_(FromCrs, 'Point'(FromCoord), ToCrs, 'Point'(ToCoord)) :- !,
+geo_transform(FromCrs, 'Point'(FromCoord), ToCrs, 'Point'(ToCoord)) :- !,
   geo_transform_coords(FromCrs, [FromCoord], ToCrs, [ToCoord]).
-geo_transform_(FromCrs, 'LineString'(FromCoords), ToCrs, 'LineString'(ToCoords)) :- !,
+geo_transform(FromCrs, 'LineString'(FromCoords), ToCrs, 'LineString'(ToCoords)) :- !,
   geo_transform_coords(FromCrs, FromCoords, ToCrs, ToCoords).
-geo_transform_(FromCrs, 'Polygon'(FromLineStrings), ToCrs, 'Polygon'(ToLineStrings)) :- !,
+geo_transform(FromCrs, 'Polygon'(FromLineStrings), ToCrs, 'Polygon'(ToLineStrings)) :- !,
   maplist(
     {FromCrs,ToCrs}/[FromLineString0,ToLineString0]>>
-      geo_transform_(FromCrs, FromLineString0, ToCrs, ToLineString0),
+      geo_transform(FromCrs, FromLineString0, ToCrs, ToLineString0),
     FromLineStrings,
     ToLineStrings
   ).
-geo_transform_(FromCrs, FromShape, ToCrs, ToShape) :-
+geo_transform(FromCrs, FromShape, ToCrs, ToShape) :-
   gtrace,%DEB
-  geo_transform_(FromCrs, FromShape, ToCrs, ToShape).
+  geo_transform(FromCrs, FromShape, ToCrs, ToShape).
 
 geo_transform_coords(FromCrs, FromCoords, ToCrs, ToCoords) :-
-  maplist(proj_crs_, [FromCrs,ToCrs], [FromCrs0,ToCrs0]),
+  maplist(proj_crs, [FromCrs,ToCrs], [FromCrs0,ToCrs0]),
   geo_transform_coords_(FromCrs0, FromCoords, ToCrs0, ToCoords).
 
-proj_crs_('http://www.opengis.net/def/crs/EPSG/0/28992', 'EPSG:28992').
-proj_crs_('http://www.opengis.net/def/crs/EPSG/0/4326', 'EPSG:4326').
+proj_crs('http://www.opengis.net/def/crs/EPSG/0/28992', 'EPSG:28992').
+proj_crs('http://www.opengis.net/def/crs/EPSG/0/4326', 'EPSG:4326').
 
 
 
