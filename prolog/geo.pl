@@ -28,6 +28,8 @@
 
 :- use_foreign_library(foreign(geo)).
 
+:- at_halt(geo_halt_).
+
 
 
 %! geo_area(+Shape:compound, -Area:float) is det.

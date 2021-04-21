@@ -25,7 +25,7 @@ static const PlAtom ATOM_geos_version{"geos_version"};
 auto parse_geometry(const char* s) -> GEOSGeometry*;
 
 const GEOSContextHandle_t handle{GEOS_init_r()};
-GEOSWKTWriter* w = GEOSWKTWriter_create_r(handle);
+GEOSWKTWriter* writer = GEOSWKTWriter_create_r(handle);
 
 class Projection {
 public:
@@ -80,7 +80,7 @@ private:
 };
 
 PREDICATE(geo_transform_coords_, 4) {
-  Projection projection{atom_to_string(A1), atom_to_string(A3)};
+  static Projection projection{atom_to_string(A1), atom_to_string(A3)};
   PlTail froms(A2);
   PlTerm from;
 	PlTermv av(1);
@@ -117,8 +117,8 @@ PREDICATE(wkt_boundary_, 2) {
   }
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = GEOSBoundary_r(handle, g1);
-  const char* s2 = GEOSWKTWriter_write_r(handle, w, g2);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s2 = GEOSWKTWriter_write_r(handle, writer, g2);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A2 = s2)};
 }
 
@@ -154,8 +154,8 @@ PREDICATE(wkt_convex_hull_, 2) {
   }
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = GEOSConvexHull_r(handle, g1);
-  const char* s2 = GEOSWKTWriter_write_r(handle, w, g2);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s2 = GEOSWKTWriter_write_r(handle, writer, g2);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A3 = s2)};
 }
 
@@ -194,8 +194,8 @@ PREDICATE(wkt_difference_, 3) {
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = parse_geometry(s2);
   const GEOSGeometry* g3 = GEOSDifference_r(handle, g1, g2);
-  const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s3 = GEOSWKTWriter_write_r(handle, writer, g3);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A3 = s3)};
 }
 
@@ -251,8 +251,8 @@ PREDICATE(wkt_envelope_, 2) {
   }
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = GEOSEnvelope_r(handle, g1);
-  const char* s2 = GEOSWKTWriter_write_r(handle, w, g2);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s2 = GEOSWKTWriter_write_r(handle, writer, g2);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A2 = s2)};
 }
 
@@ -291,8 +291,8 @@ PREDICATE(wkt_intersection_, 3) {
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = parse_geometry(s2);
   const GEOSGeometry* g3 = GEOSIntersection_r(handle, g1, g2);
-  const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s3 = GEOSWKTWriter_write_r(handle, writer, g3);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A3 = s3)};
 }
 
@@ -354,8 +354,8 @@ PREDICATE(wkt_symmetric_difference_, 3) {
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = parse_geometry(s2);
   const GEOSGeometry* g3 = GEOSSymDifference_r(handle, g1, g2);
-  const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s3 = GEOSWKTWriter_write_r(handle, writer, g3);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A3 = s3)};
 }
 
@@ -394,8 +394,8 @@ PREDICATE(wkt_union_, 3) {
   const GEOSGeometry* g1 = parse_geometry(s1);
   const GEOSGeometry* g2 = parse_geometry(s2);
   const GEOSGeometry* g3 = GEOSUnion_r(handle, g1, g2);
-  const char* s3 = GEOSWKTWriter_write_r(handle, w, g3);
-  GEOSWKTWriter_destroy_r(handle, w);
+  const char* s3 = GEOSWKTWriter_write_r(handle, writer, g3);
+  GEOSWKTWriter_destroy_r(handle, writer);
   return{static_cast<foreign_t>(A3 = s3)};
 }
 
@@ -425,12 +425,12 @@ PREDICATE(wkt_within_, 2) {
 // shape_type_(+Wkt:atom, -Type:atom) is det.
 PREDICATE(shape_type_, 2) {
   std::size_t len{0};
-  char* s = nullptr;
-  if (!PL_get_nchars(A1, &len, &s, CVT_ATOM)) {
+  char* buffer = nullptr;
+  if (!PL_get_nchars(A1, &len, &buffer, CVT_ATOM)) {
     PL_fail;
   }
-  const GEOSGeometry* g = parse_geometry(s);
-  return{static_cast<foreign_t>(A2 = GEOSGeomType_r(handle, g))};
+  const GEOSGeometry* geometry = parse_geometry(buffer);
+  return{static_cast<foreign_t>(A2 = GEOSGeomType_r(handle, geometry))};
 }
 
 auto atom_to_string(term_t t) -> std::string
@@ -441,15 +441,15 @@ auto atom_to_string(term_t t) -> std::string
   return{buffer};
 }
 
-auto parse_geometry(const char* s) -> GEOSGeometry*
+auto parse_geometry(const char* const buffer) -> GEOSGeometry*
 {
-  GEOSWKTReader* r = GEOSWKTReader_create_r(handle);
-  GEOSGeometry* g = GEOSWKTReader_read_r(handle, r, s);
-  if (!g) {
-    throw PlTypeError("geometry", s);
+  GEOSWKTReader* reader = GEOSWKTReader_create_r(handle);
+  GEOSGeometry* geometry = GEOSWKTReader_read_r(handle, reader, buffer);
+  if (!geometry) {
+    throw PlTypeError("geometry", buffer);
   }
-  GEOSWKTReader_destroy_r(handle, r);
-  return g;
+  GEOSWKTReader_destroy_r(handle, reader);
+  return geometry;
 }
 
 extern "C" {
