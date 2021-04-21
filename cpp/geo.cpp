@@ -17,9 +17,17 @@
 
 #define CVT_TEXT (CVT_ATOM|CVT_STRING|CVT_EXCEPTION|REP_UTF8)
 
-static const PlAtom ATOM_epsg_28992{"EPSG:28992"};
-static const PlAtom ATOM_epsg_4326{"EPSG:4326"};
-static const PlAtom ATOM_geos_version{"geos_version"};
+extern "C" {
+#define MKATOM(a) ATOM_ ## a = PL_new_atom(#a)
+
+  static atom_t ATOM_geos_version;
+
+  install_t
+  install_geo(void)
+  {
+    MKATOM(geos_version);
+  }
+}
 
 [[nodiscard]] auto atom_to_string(term_t t) -> std::string;
 auto parse_geometry(const char* s) -> GEOSGeometry*;
@@ -100,12 +108,17 @@ PREDICATE(geo_halt_, 0) {
 
 // geo_property_(?Property:compound) is det.
 PREDICATE(geo_property_, 1) {
-  PlTerm value{A1[1]};
-  if (A1 == ATOM_geos_version) {
-    return (value = GEOSversion());
-  } else {
-    throw PlDomainError("geo_property", A1);
+  atom_t optionName;
+  std::size_t optionArity{0};
+  if (PL_get_name_arity(A1, &optionName, &optionArity) && optionArity == 1) {
+    PlTerm optionValue{A1[1]};
+    if (optionName == ATOM_geos_version) {
+      return{static_cast<foreign_t>(optionValue = GEOSversion())};
+    } else {
+      throw PlDomainError("geo_property", A1);
+    }
   }
+  return{static_cast<foreign_t>(PL_type_error("compound", A1))};
 }
 
 // wkt_boundary_(+Wkt:atom, -Boundary:atom) is det.
@@ -450,8 +463,4 @@ auto parse_geometry(const char* const buffer) -> GEOSGeometry*
   }
   GEOSWKTReader_destroy_r(handle, reader);
   return geometry;
-}
-
-extern "C" {
-  install_t install_geo() {}
 }

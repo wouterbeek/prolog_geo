@@ -4,11 +4,16 @@
 
   1. Install [SWI-Prolog](https://www.swi-prolog.org).
 
-  2. Install the GEOS library:
+  2. Install the [GEOS](https://trac.osgeo.org/geos) library.  The following works on Ubuntu:
 
 ```sh
-apt install libgeos-dev     # Debian, Ubuntu
-dnf install geos geos-devel # Fedora, Red Hat
+apt install libgeos-dev
+```
+
+  3. Install the [Proj](https://proj.org) library.  The following works on Ubuntu:
+
+```sh
+apt install libproj-dev
 ```
 
 ## Installation
@@ -31,5 +36,5 @@ Predicates defined in the loaded modules can now be used:
 
 ```pl
 ?- geo_property(Property).
-Property = geos_version('3.7.2-CAPI-1.11.2 b55d2125').
+Property = geos_version('3.8.1-CAPI-1.13.3').
 ```
